@@ -1,0 +1,7 @@
+Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+<|user|> 
+Rewrite the following text. Use simpler language but keep the exact same format:
+<|context|>
+
+<|bot|>

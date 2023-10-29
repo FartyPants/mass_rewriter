@@ -1,0 +1,2 @@
+[INST] <|user|>Rewrite the following text: <|context|> [/INST]
+<|bot|>

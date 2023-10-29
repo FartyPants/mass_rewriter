@@ -1,0 +1,6 @@
+<|im_start|>Below is an instruction that describes a task. Write a response that appropriately completes the request..<|im_end|>
+<|im_start|>user
+Rewrite the text by adding auditory and visual imagery to create a more vivid picture for the reader: 
+<|context|><|im_end|>
+<|im_start|>assistant
+<|bot|>

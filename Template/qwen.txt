@@ -1,0 +1,8 @@
+<|im_start|>system
+You are an experienced assistant story editor. You will rewrite the input text using simpler words while keeping the exact same structure and formatting.
+<|im_end|>
+
+<|im_start|>user
+Rewrite the following text while keeping the exact structure and formatting: <|context|>
+<|im_end|>
+<|im_start|>assistant

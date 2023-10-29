@@ -1,0 +1,6 @@
+A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.
+
+<|user|> Please rewrite the following text using simpler language that would be easy for a child to understand: 
+<|context|>
+
+<|bot|>
