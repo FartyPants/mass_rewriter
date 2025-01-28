@@ -15,6 +15,7 @@ import json
 import time
 from collections import Counter
 import random
+import shutil
 
 from modules import chat
 
@@ -27,8 +28,8 @@ YELLOW = "\033[93m"
 GREEN = "\033[92m"
 RESET = "\033[0m"
 
-female_names = ["Mary", "Jane", "Alice", "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail", "Emily", "Elizabeth", "Sofia", "Ella", "Avery", "Madison", "Scarlett", "Grace", "Chloe", "Victoria", "Lily", "Hannah", "Natalie", "Zoe", "Layla", "Aria", "Lillian", "Addison", "Eleanor", "Nora", "Hazel", "Riley", "Aubrey", "Zoe", "Penelope", "Aurora", "Aaliyah", "Savannah", "Kennedy", "Nova", "Stella", "Paisley", "Taylor", "Alexa"]
-male_names = ["John", "Michael", "William", "James", "David", "Joseph", "Daniel", "Richard", "Robert", "Charles", "Thomas", "Edward", "George", "Donald", "Mark", "Steven", "Brian", "Jeffrey", "Paul", "Kenneth", "Ronald", "Anthony", "Christopher", "Kevin", "Scott", "Timothy", "Stephen", "Dennis", "Larry", "Gary", "Gregory", "Frank", "Jerry", "Matthew", "Peter", "Raymond", "George", "Harry", "Walter", "Roger", "Eric", "Philip", "Lawrence", "Dale", "Carl", "Bruce", "Alan", "Ronnie"]
+female_names = ["Mary", "Jane", "Alice", "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail", "Emily", "Elizabeth", "Sofia", "Ella", "Avery", "Madison", "Scarlett", "Grace", "Chloe", "Victoria", "Hannah", "Natalie", "Zoe", "Layla", "Aria", "Lillian", "Addison", "Eleanor", "Nora", "Hazel", "Riley", "Aubrey", "Zoe", "Penelope", "Aurora", "Aaliyah", "Savannah", "Kennedy", "Nova", "Stella", "Paisley", "Taylor", "Alexa",'Fiona', "Lucy", "Ivy", "Abby", "Poppy", "Eva", "Molly", "Lilly", "Callie", "Zara"]
+male_names = ["John", "Michael", "William", "James", "David", "Joseph", "Daniel", "Richard", "Robert", "Charles", "Thomas", "Edward", "George", "Donald", "Mark", "Steven", "Brian", "Jeffrey", "Paul", "Kenneth", "Ronald", "Anthony", "Christopher", "Kevin", "Scott", "Timothy", "Stephen", "Dennis", "Larry", "Gary", "Gregory", "Frank", "Jerry", "Matthew", "Peter", "Raymond", "George", "Harry", "Walter", "Roger", "Eric", "Philip", "Lawrence", "Dale", "Carl", "Bruce", "Alan", "Ronnie","Noah", "Jacob", "Logan", "Asher", "Samuel", "Benjamin", "Henry", "Theodore", "Maximus", "Arthur"]
 last_names = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor", "Anderson", "Thomas", "Harris", "Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lewis", "Lee", "Walker", "Hall", "Allen", "Young", "Hernandez", "King", "Wright", "Lopez", "Hill", "Scott", "Green", "Adams", "Baker", "White", "Carter", "Turner", "Nelson", "Parker", "Edwards", "Collins", "Stewart", "Sanchez", "Morris", "Rogers", "Reed"]
 british_towns = ["London", "Birmingham", "Manchester", "Liverpool", "Glasgow", "Leeds", "Newcastle", "Sheffield", "Bristol", "Cardiff", "Edinburgh", "Belfast", "Aberdeen", "Brighton", "Cambridge", "Oxford", "York", "Nottingham", "Leicester", "Southampton", "Portsmouth", "Bath", "Canterbury", "Durham", "Exeter", "Inverness", "Stirling", "Swansea", "Plymouth", "Dundee",
                  "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville", "San Francisco", "Indianapolis", "Fort Worth", "Seattle", "Denver", "El Paso", "Washington", "Boston", "Nashville", "Baltimore", "Oklahoma City", "Portland", "Las Vegas", "Louisville", "Milwaukee", "Albuquerque", "Tucson",]
@@ -76,6 +77,7 @@ plaintextfile = ''
 file_nameJSON = "output.json"
 file_nameTXT = "output.txt"
 
+JSON_TYPE = ['Instruction -> LLM -> Instruction, Output -> Output','Instruction -> Instruction, Output -> LLM -> Output']
 params = {
         "display_name": "Mass Rewritter",
         "is_tab": True,
@@ -93,7 +95,7 @@ params = {
         "out_type":'JSON',
         "out_reverse": True,
         "generate": True,
-        "skip_short": True,
+        "skip_short": False,
         "block_size": 850,
         "replace_eol2": True,
         "repeat_times": 1,
@@ -108,6 +110,11 @@ params = {
         'names_last': '',
         'names_places1': '',
         'names_places2': '',
+        'JSONType': 0,
+        'output_filename': 'output',
+        'chapter_start': 'CHAPTER',
+        'add_errors': False,
+        'error_level':3,
 }
 default_req_params = {
     'max_new_tokens': 200,
@@ -209,8 +216,9 @@ def replace_names_with_replace(text, female_names, names_she):
 
     if len(names_she)>0:
         for name in names_she:
-            replacement = random.choice(female_names)
-            text = text.replace(name, replacement)
+            if name!='':
+                replacement = random.choice(female_names)
+                text = text.replace(name, replacement)
     
     return text
 
@@ -220,11 +228,75 @@ def string_to_name_list(input_string):
     return name_list
 
 
+def add_random_grammatical_errors(text, num_iterations=3):
+    # Split the text into sentences
+    print(f"Adding Errors level {num_iterations}")
+
+    sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
+
+    # List of possible grammatical errors
+    errors = [
+        lambda x: x,  # No error
+        lambda x: x.replace('.', ','),  # Remove comma
+        lambda x: x.replace(',', ''),  # Remove comma
+        lambda x: x.replace(',', ''),  # Remove comma
+        lambda x: x.replace(',', ''),  # Remove comma
+        lambda x: x.replace("'", ''),  # Remove single quotes
+        lambda x: x.replace(" its", " it's"),  # Replace "its" with "it's"
+        lambda x: x.replace(" it's", " its"),  # Replace "its" with "it's"
+        lambda x: x.replace("'s", "s"),  # Replace "its" with "it's"
+        lambda x: x.replace(" the ", " "),  
+        lambda x: x.replace(" a ", " "),
+        lambda x: x.replace(" an ", " "),
+        lambda x: x.replace(" the ", " a "),
+        lambda x: x.replace(" a ", " the "),  
+        lambda x: x.replace("The ", "A "),    
+        lambda x: x.replace(" you're ", " you are "),  
+        lambda x: x.replace(" I'm ", " I am "),  
+        #lambda x: re.sub(r'\b(a|an|the)\b', '', x),  # Remove articles (a, an, the)
+        #lambda x: re.sub(r'\b(a|an|the)\b', lambda m: 'an' if m.group(1) == 'a' else 'a', x),  # Replace articles with wrong ones
+        #lambda x: re.sub(r'\b(a|an|the)\b', lambda m: 'the' if m.group(1) == 'a' else 'a', x),
+
+        lambda x: x.replace(' is', ' are'),  # Replace "is" with "are"
+        lambda x: x.replace('I\'m', 'Im'),  
+        lambda x: x.replace('hers', 'her\'s'),
+        lambda x: x.replace('ours', 'our\'s'), 
+        #lambda x: x.replace(' you', ' yu'),  # Replace "you" with "u"
+        lambda x: x.replace('there', 'their'),  # Replace "there" with "their"
+        lambda x: x.replace('yours', 'your\'s'),  # Replace "your" with "you are"
+        lambda x: x.replace(' to', ' too'),  # Replace "to" with "too"
+        lambda x: x.replace(' it', ' he'),  # Replace "it" with "he"
+        lambda x: x.replace(' your', ' you\'re'),  # Replace "your" with "you're"
+        # lambda x: re.sub(r'\b(\w+)\b', lambda m: m.group(1) + ',', x, count=1),  # Add "," to a random word
+
+    ]
+
+    # Apply random errors for a specified number of iterations
+    for _ in range(num_iterations):
+        for i, sentence in enumerate(sentences):
+            random_error = random.choice(errors)
+            sentences[i] = random_error(sentence)
+
+    # Join the sentences back into a modified text
+    modified_text = ' '.join(sentences)
+    return modified_text
+
+
 # Function to load JSON data safely
 # JSON has both paragraphs and paragraphs_output
-def load_json_data(file):
+def load_json_data(file, gr_JSONType):
+    global params
+    global JSON_TYPE
+
     global paragraphs
     global paragraphs_output
+
+    jsonNum = 0
+
+    if gr_JSONType in JSON_TYPE:
+        jsonNum = JSON_TYPE.index(gr_JSONType)
+
+    params['JSONType'] = jsonNum
 
     left_key = 'instruction'
     right_key = 'output'
@@ -240,13 +312,20 @@ def load_json_data(file):
             if json_in_data:
                 #first_item_keys = list(json_in_data[0].keys())
             # Extract 'input' and 'output' values into the arrays
-                for item in json_in_data:
-                    paragraphs.append(item[left_key])
-                    paragraphs_output.append(item[right_key])
+                if jsonNum ==0:
+                    for item in json_in_data:
+                        paragraphs.append(item[left_key])
+                        paragraphs_output.append(item[right_key])
 
 
-                return f"JSON data Items: {len(paragraphs)}, the `{left_key}` will be used as input `(Text [in]`, and the `{right_key}` will be used as `original stand-in Text [in]` written in output JSON"
-            
+                    return f"JSON data Items: {len(paragraphs)}, the `{left_key}` will be used as input `(Text [in]`, and the `{right_key}` will be used as `original stand-in Text [in]` written in output JSON"
+                elif jsonNum == 1:
+                    for item in json_in_data:
+                        paragraphs.append(item[right_key])
+                        paragraphs_output.append(item[left_key])
+
+                    return f"JSON data Items: {len(paragraphs)}, the `{right_key}` will be used as input `(Text [in]`, and the `{left_key}` will be used as `original stand-in Text [in]` written in input JSON"                    
+
                 #for key in first_item_keys:
                 #    print(key)
             else:
@@ -264,11 +343,30 @@ def load_json_data(file):
         return "JSON file is not valid JSON."
 
 
+def save_template(DYNAMEMORY, para_template_exampletext, DYNAMEMORY_filename):
+
+    templ_fname = DYNAMEMORY_filename
+
+    if DYNAMEMORY_filename=='None' or DYNAMEMORY_filename=='' or DYNAMEMORY_filename == "<write file name here>" or DYNAMEMORY_filename == '<Saved>':
+        print("File name can't be None")
+        templ_fname = "<write file name here>"
+    else:    
+        basepath = "extensions/mass_rewritter/Template/"+DYNAMEMORY_filename+".txt"
+        save_string_to_file(basepath,DYNAMEMORY)
+        templ_fname = '<Saved>'
+        if para_template_exampletext.strip() != '':
+            basepath2 = "extensions/mass_rewritter/Template/"+DYNAMEMORY_filename+"_examples.txt"
+            save_string_to_file(basepath2, para_template_exampletext)
+
+    return templ_fname
 
 def load_Paraphrase_template(file):
     global params
     template = 'Paraphrase the following\n<|context|>'
+    template2 = ''
+
     path = get_file_path('Template',file)
+    path2 = get_file_path('Template',f"{file}_examples")
     
     if path:
         print(f"Loading Paraphrase Template: {path}")
@@ -276,7 +374,11 @@ def load_Paraphrase_template(file):
 
         params['selected_template'] = file
 
-    return template
+    if path2:
+        print(f"Loading Examples Template: {path2}")
+        template2 = read_file_to_string(path2)
+ 
+    return template,template2
 
 def convert_to_string_with_units(length):
     if length < 1024:
@@ -348,7 +450,7 @@ def convert_blocks(inputfile_text_drop,gr_block_size):
     path = get_file_path('inputs',inputfile_text_drop)
 
     inputfile_text_drop = inputfile_text_drop.replace('.txt','')
-    outfile = inputfile_text_drop + '.blocks.txt'
+    outfile = inputfile_text_drop + f'.blocks{int(gr_block_size)}.txt'
 
     
     pathOUT = get_file_path_noCheck('inputs',outfile)
@@ -362,11 +464,14 @@ def convert_blocks(inputfile_text_drop,gr_block_size):
         raise FileNotFoundError(f"The file '{path}' does not exist.")
     
     split_temp = params["paragraph_split"].replace('\\n', '\n')
+    chapter_start = params['chapter_start']
 
     params.update({"block_size": gr_block_size})
     # Replace '\r\n' with '\n'
     input_text = input_text.replace('\r\n', '\n')
 
+
+    input_text = input_text.replace('\n\n\n', '\n<break>\n')
     # Split the text by '\n' into an array
     text_array = input_text.split('\n')
 
@@ -387,15 +492,31 @@ def convert_blocks(inputfile_text_drop,gr_block_size):
         # would exceed the character limit, add it to the final list
         if paragraph != "":
 
-            if len(current_paragraph) + len(paragraph) + 1 > max_paragraph_length:
+            if chapter_start!='' and paragraph.startswith(chapter_start):
+                paragraph = "\n"
+
+            if paragraph == '<break>' :
+                current_paragraph =  current_paragraph.strip()    
+
+                if current_paragraph !="":
+                    final_paragraphs.append(current_paragraph.strip())
                 
-                final_paragraphs.append(current_paragraph.strip())
+                current_paragraph = ""
+                paragraph = ""
+            
+            if len(current_paragraph) + len(paragraph) + 1 > max_paragraph_length:
+
+                current_paragraph =  current_paragraph.strip()    
+                if current_paragraph !="":
+                    final_paragraphs.append(current_paragraph.strip())
+                
                 current_paragraph = ""
         
             current_paragraph += paragraph+ "\n"
 
     # Add the last remaining paragraph to the final list
-    if current_paragraph:
+    current_paragraph =  current_paragraph.strip()         
+    if current_paragraph !="":
         final_paragraphs.append(current_paragraph.strip())
 
     # Join the final paragraphs with '\n' to create the output text
@@ -419,6 +540,7 @@ def convert_blocks(inputfile_text_drop,gr_block_size):
 def load_file(filep):
     global paragraphs
     global paragraphs_output
+    global params
     
     paragraphs = []
     paragraphs_output = []
@@ -448,7 +570,18 @@ def load_file(filep):
     num_paragraphs = len(paragraphs)
     print((f"paragraphs: {num_paragraphs}"))
     infotext = f"Loaded Paragraphs: {num_paragraphs}"
-    return infotext
+
+    modelname = f"_{shared.model_name}"
+    modelname = modelname.replace('-','_')
+    modelname = modelname.replace('_HF','')
+    modelname = modelname.replace('_GPTQ','')
+    modelname = modelname.replace('_4b','')
+    modelname = modelname.replace('_128g','')
+
+    params['output_filename'] = filep+ modelname
+
+
+    return infotext, params['output_filename']
 
 def format_time(seconds: float):
     if seconds < 120:
@@ -472,18 +605,22 @@ def format_time2(seconds: float):
     hours = minutes / 60
     return f"{hours:.0f} hours"
 
-def mainloop(para_template_text,para_template_text2, state):
+def mainloop(para_template_text,para_template_text2, para_template_exampletext, state):
 
     global params
     global plaintextfile
     global jsonfile
     global paragraphs_output
     global paragraphs
+    global file_nameJSON
+    global file_nameTXT
 
+
+    file_nameJSON =  f"{params['output_filename']}.json"
+    file_nameTXT = f"{params['output_filename']}.txt"
 
     params['alt_template'] = para_template_text2
-
-
+ 
     html = ''
 
     jsonfile.clear()
@@ -520,6 +657,17 @@ def mainloop(para_template_text,para_template_text2, state):
     print(f"Replace Names  {params['replace_names']}")
 
 
+    if params['out_type']=='JSON': 
+        source_file = Path(file_nameJSON)
+        if source_file.is_file():
+            backup_file = "output_backup.json"
+            shutil.copy2(source_file, backup_file)
+    else:       
+        source_file = Path(file_nameTXT)
+        if source_file.is_file():
+            backup_file = "output_backup.txt"
+            shutil.copy2(source_file, backup_file)
+ 
     names_she = []
     names_he = []
     names_last = []
@@ -541,6 +689,8 @@ def mainloop(para_template_text,para_template_text2, state):
 
     baseprompt2 = str(para_template_text2)
 
+    pretext_examples = str(para_template_exampletext)
+
     if baseprompt2.strip() == "":
         baseprompt2 = baseprompt
     
@@ -549,6 +699,11 @@ def mainloop(para_template_text,para_template_text2, state):
 
     baseprompt2 = baseprompt2.replace('<|user|>', user)
     baseprompt2 = baseprompt2.replace('<|bot|>', bot) 
+
+    if pretext_examples.strip() != "":
+        pretext_examples = pretext_examples.replace('<|user|>', user)
+        pretext_examples = pretext_examples.replace('<|bot|>', bot) 
+        baseprompt = pretext_examples + "\n" + baseprompt
 
 
 
@@ -573,10 +728,17 @@ def mainloop(para_template_text,para_template_text2, state):
     jason_inp = False
 
     if len(paragraphs_output)>0:
-        if reverse:
-            print (f"{RED}[LLM Output to Instructions] JSON cross case{RESET} - (loaded JSON) 'instructions' -> Text [in] -> {RED}LLM Text [out] -> JSON 'instructions'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'output'{RESET}")
-        else:
-            print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'instructions' -> Text [in] -> {RED}LLM Text [out] -> JSON 'output'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'instructions'{RESET}")
+
+        if params['JSONType'] == 0: 
+            if reverse:
+                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'instructions' -> Text [in] -> {RED}LLM Text [out] -> JSON 'instructions'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'output'{RESET}")
+            else:
+                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'instructions' -> Text [in] -> {RED}LLM Text [out] -> JSON 'output'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'instructions'{RESET}")
+        if params['JSONType'] == 1: 
+            if reverse:
+                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'output' -> Text [in] -> {RED}LLM Text [out] -> JSON 'instructions'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'output'{RESET}")
+            else:
+                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'output' -> Text [in] -> {RED}LLM Text [out] -> JSON 'output'{RESET} and {YELLOW}(loaded JSON) 'input' -> JSON 'input'{RESET}")
 
         jason_inp = True
     else:
@@ -596,7 +758,7 @@ def mainloop(para_template_text,para_template_text2, state):
         names_last = string_to_name_list(params['names_last'])
         names_places1 = string_to_name_list(params['names_places1'])
         names_places2 = string_to_name_list(params['names_places2']) 
-        if jason_inp and index<len(paragraphs_output):
+        if jason_inp:
             print(f"{RED}Replace Names is incompatible with JSON Cross {RESET}")
             b_replaceNames = False
             print(f"Replace Names  {b_replaceNames}")
@@ -610,7 +772,6 @@ def mainloop(para_template_text,para_template_text2, state):
 
             if jason_inp and index<len(paragraphs_output):
                 repolacement_out = paragraphs_output[index]
-                
 
             jsoninputLN = ''
             if num_lines>0:
@@ -629,6 +790,7 @@ def mainloop(para_template_text,para_template_text2, state):
 
             if params['replace_eol2']==True:
                 paragraph = paragraph.replace('\n\n','\n')
+                paragraph = paragraph.replace('\n \n','\n')
 
             if params['replace_eol']==True:
                 paragraph = paragraph.replace('\n',' ')
@@ -708,13 +870,20 @@ def mainloop(para_template_text,para_template_text2, state):
                                 reply = a
                             else:
                                 reply = a[0]
-                        
+
+
+                        indexUser = reply.find(user)
+
+                        if indexUser != -1:
+                            # Extract the part of the string before "### Instruction"
+                            reply = reply[:indexUser]
 
                         indexBot = reply.find(bot)
 
                         if indexBot != -1:
                             # Extract the part of the string before "### Response"
                             reply = reply[:indexBot]
+
 
                         if params['double_gen']:
                             # do it again
@@ -741,6 +910,9 @@ def mainloop(para_template_text,para_template_text2, state):
 
                         reply = reply.strip()
 
+                        if params['add_errors'] == True:
+                            reply = add_random_grammatical_errors(reply,params['error_level'])
+
                         reply_length = len(reply)
                     else:
                         reply_length = paragrap_length
@@ -752,7 +924,7 @@ def mainloop(para_template_text,para_template_text2, state):
                         paragraph_orig  =  paragraph
                         if jason_inp and repolacement_out!='':
                             paragraph_orig  =  repolacement_out
-
+                     
                         if reply_length > paragrap_length*3:
                             print("Too weird reply")
                             if params['include_long']:
@@ -848,6 +1020,9 @@ def mainloop(para_template_text,para_template_text2, state):
 
 def final_save():
    
+    file_nameJSON =  f"{params['output_filename']}.json"
+    file_nameTXT = f"{params['output_filename']}.txt"
+
     if len(jsonfile)>0 and params['final-save']==False:
         print("\033[1;32;1mInterrupt Saving...\033[0;37;0m")
         if params['out_type']=='JSON': 
@@ -919,20 +1094,6 @@ def save_string_to_file(file_path, string):
         print("Error occurred while saving string to file:", str(e))
 
 
-def save_template(DYNAMEMORY,DYNAMEMORY_filename):
-
-    templ_fname = DYNAMEMORY_filename
-
-    if DYNAMEMORY_filename=='None' or DYNAMEMORY_filename=='' or DYNAMEMORY_filename == "<write file name here>" or DYNAMEMORY_filename == '<Saved>':
-        print("File name can't be None")
-        templ_fname = "<write file name here>"
-    else:    
-        basepath = "extensions/mass_rewritter/Template/"+DYNAMEMORY_filename+".txt"
-        save_string_to_file(basepath,DYNAMEMORY)
-        templ_fname = '<Saved>'
-
-    return templ_fname
-
 def ui():
     global params
     global file_nameJSON
@@ -949,7 +1110,8 @@ def ui():
  
     #input_elements = list_interface_input_elements(chat=False)
     #interface_state = gr.State({k: None for k in input_elements})
-    paraphrase_text = load_Paraphrase_template(params['selected_template'])
+    paraphrase_text,example_text = load_Paraphrase_template(params['selected_template'])
+     
     params["done"] = False
     with gr.Row():
         with gr.Column():
@@ -960,11 +1122,13 @@ def ui():
                     create_refresh_button(inputfile_text_drop, lambda: None, lambda: {'choices': get_available_input()}, 'refresh-button')
                     with gr.Tab('Load Blockified text'):
                         with gr.Row():
-                            gr_par_split= gr.Textbox(value=params["paragraph_split"], lines=1, label='Block split', interactive=True)
+                            with gr.Column():
+                                gr_par_split= gr.Textbox(value=params["paragraph_split"], lines=1, label='Block split', interactive=True)
                             text_btn_load = gr.Button('Load', variant='primary', elem_classes="small-button")
                     with gr.Tab('Blockify normal text'):  
                         with gr.Row():
                             gr_block_size = gr.Number(value=params['block_size'],label='Block size (in chars)')
+                            gr_par_split_chapter = gr.Textbox(value=params["chapter_start"], lines=1, label='Chapter word', interactive=True)
                             gr_convert_to_Block = gr.Button('Convert to Blocks', variant='primary', elem_classes="small-button") 
                     with gr.Tab('Extract names'):  
                         with gr.Row():
@@ -974,6 +1138,7 @@ def ui():
                     with gr.Row():
                         inputfile_text_drop_JSON  = gr.Dropdown(choices=get_available_input_JSON(), label='Input file', elem_classes=['slim-dropdown'], value='None')
                         create_refresh_button(inputfile_text_drop_JSON, lambda: None, lambda: {'choices': get_available_input_JSON()}, 'refresh-button')
+                        gr_JSONType = gr.Dropdown(choices=JSON_TYPE, value=JSON_TYPE[0])
                         text_btn_load_JSON = gr.Button('Load JSON', variant='primary', elem_classes="small-button")
      
             with gr.Row():
@@ -992,6 +1157,9 @@ def ui():
                         with gr.Tab('Alt Template (for duble-gen)'):    
                             with gr.Row():                            
                                 para_template_text2 = gr.Textbox(value=params["alt_template"], lines=10, interactive=True, placeholder='If empty, then Main Template will be used for Double-gen')
+                        with gr.Tab('Examples'):    
+                            with gr.Row():                            
+                                para_template_exampletext = gr.Textbox(value=example_text, lines=10, interactive=True, placeholder='Add some examples in the same instruct format as Main Template to better guide the model')
                         with gr.Tab('Names'): 
                             with gr.Column():
                                 names_replace = gr.Checkbox(value=params['replace_names'], label='Randomly Replace names/places')
@@ -1016,6 +1184,9 @@ def ui():
                                         gr_radioReverse = gr.Checkbox(label='LLM Output to JSON Instructions (LLM Text [out]) -> JSON [instruction], (Text [in]) -> JSON [output]',value = params['out_reverse'], interactive=True)     
                                     
                                         gr_rep_EOL = gr.Checkbox(value=params['replace_eol'],label='Replace \\n in Text [in] with space')
+
+                                        gr_add_err = gr.Checkbox(value=params['add_errors'], label='Add grammatical errors')
+                                        gr_add_err_level = gr.Slider(value=params['error_level'], label="Error level", minimum=1, maximum=10,step = 1)
                                     
                                         gr_rep_EOL2 = gr.Checkbox(value=params['replace_eol2'],label='Replace \\n\\n with one \\n in Text [in]')
                                         gr_rmove_EOL = gr.Checkbox(value=params['remove_eol'],label='Internally Remove \\n before it goes to LLM, but keep it in Text [in]')
@@ -1031,7 +1202,7 @@ def ui():
                                 save_btn = gr.Button('Save Current Settings')        
 
                         with gr.Row():
-                            preset_type = gr.Dropdown(label="Model Instruct type", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant"], value="Custom")
+                            preset_type = gr.Dropdown(label="Model Instruct type", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML"], value="Custom")
                             text_USR = gr.Textbox(value=params['pUSER'], lines=1, label='User string')
                             text_BOT = gr.Textbox(value=params['pBOT'], lines=1, label='Bot string')
         
@@ -1044,13 +1215,19 @@ def ui():
                         prev_nextbtn = gr.Button('>>')
                         
                 text_out = gr.Textbox(value='', lines=10, label='LLM Text [out]:', elem_classes=['textbox', 'add_scrollbar'])
-            with gr.Row():
-                gr_radio = gr.Radio(choices = ['JSON','Plain TEXT'], value = params['out_type'], label='Output: JSON (Text [in,out]) or TXT (Text [out])')
-                text_instruct = gr.Textbox(value=params['instruct'], lines=1, label='JSON instruct (ALT on separate lines)')
-                plaintext_instruct = gr.Textbox(value=params['plaintext_delim'], lines=1, label='Plain text paragraph separator')        
+            with gr.Row():    
+                with gr.Column():
+                    with gr.Row():
+                        gr_radio = gr.Radio(choices = ['JSON','Plain TEXT'], value = params['out_type'], label='Output: JSON (Text [in,out]) or TXT (Text [out])')
+                        text_instruct = gr.Textbox(value=params['instruct'], lines=1, label='JSON instruct (ALT on separate lines)')
+                    
+                with gr.Column():
+                    with gr.Row():
+                        out_filename = gr.Textbox(value=params['output_filename'], lines=1, label='Output filename')   
+                        plaintext_instruct = gr.Textbox(value=params['plaintext_delim'], lines=1, label='Plain text paragraph separator')        
+                    #text_outFile = gr.Textbox(value=file_nameJSON, lines=1, label='Output file JSON')        
+                    #text_outFileTXT = gr.Textbox(value=file_nameTXT, lines=1, label='Output file TXT')
 
-                text_outFile = gr.Textbox(value=file_nameJSON, lines=1, label='Output file JSON')        
-                text_outFileTXT = gr.Textbox(value=file_nameTXT, lines=1, label='Output file TXT')       
             with gr.Row():
                 start_btn = gr.Button('Start', variant='primary')
                 cancel_btn = gr.Button('Cancel',variant='stop')
@@ -1063,18 +1240,18 @@ def ui():
         return gr.Dropdown.update(choices=get_available_templates())
    
 
-    para_templates_drop.change(load_Paraphrase_template,para_templates_drop,para_template_text) 
+    para_templates_drop.change(load_Paraphrase_template,para_templates_drop,[para_template_text,para_template_exampletext]) 
 
-    templ_btn_save.click(save_template,[para_template_text,templ_filename],templ_filename).then(update_reloadTempl,None, para_templates_drop)
+    templ_btn_save.click(save_template,[para_template_text,para_template_exampletext, templ_filename],templ_filename).then(update_reloadTempl,None, para_templates_drop)
 
-    input_paramsA = [para_template_text,para_template_text2, shared.gradio['interface_state']]
+    input_paramsA = [para_template_text,para_template_text2, para_template_exampletext, shared.gradio['interface_state']]
     output_paramsA =[text_in, text_out, infotext2, gr_htmlDisp]
 
     #inputfile_text.change(load_file, inputfile_text,infotext)
 
-    text_btn_load.click(load_file,inputfile_text_drop,infotext)
+    text_btn_load.click(load_file,inputfile_text_drop,[infotext,out_filename])
 
-    text_btn_load_JSON.click(load_json_data,inputfile_text_drop_JSON, infotext)
+    text_btn_load_JSON.click(load_json_data,[inputfile_text_drop_JSON,gr_JSONType], infotext)
 
     def make_html_visible():
         return gr.update(visible = True)
@@ -1125,6 +1302,9 @@ def ui():
             return '### Human:','### Assistant:'
         elif x == "OpenAssistant":
             return '<|prompter|>','<|endoftext|><|assistant|>'
+        elif x == "ChatML":
+            return '<|im_start|>user','<|im_start|>assistant'
+
         
         return 'USER:','ASSISTANT:'           
 
@@ -1139,12 +1319,17 @@ def ui():
     # activate.change(lambda x: params.update({"activate": x}), activate, None)
     text_USR.change(lambda x: params.update({"pUSER": x}), text_USR, None) 
     text_BOT.change(lambda x: params.update({"pBOT": x}), text_BOT, None) 
-    text_outFile.change(update_Out, text_outFile, None) 
-    text_outFileTXT.change(update_OutTXT, text_outFileTXT, None) 
+    #text_outFile.change(update_Out, text_outFile, None) 
+    #text_outFileTXT.change(update_OutTXT, text_outFileTXT, None) 
+
+    out_filename.change(lambda x: params.update({"output_filename": x}), out_filename, None)
     
     text_instruct.change(lambda x: params.update({"instruct": x}), text_instruct, None) 
     preset_type.change(update_preset,preset_type,[text_USR,text_BOT])
     gr_rep_EOL.change(lambda x: params.update({"replace_eol": x}), gr_rep_EOL, None)
+    gr_add_err.change(lambda x: params.update({"add_errors": x}), gr_add_err, None)
+    gr_add_err_level.change(lambda x: params.update({"error_level": x}), gr_add_err_level, None)
+
     gr_rmove_EOL.change(lambda x: params.update({"remove_eol": x}), gr_rmove_EOL, None)
     gr_rep_EOL2.change(lambda x: params.update({"replace_eol2": x}), gr_rep_EOL2, None)
     repeat_times.change(lambda x: params.update({"repeat_times": x}), repeat_times, None)
@@ -1155,6 +1340,9 @@ def ui():
     gr_rep_Include_Long.change(lambda x: params.update({"include_long": x}), gr_rep_Include_Long, None)
     gr_rep_skip_short.change(lambda x: params.update({"skip_short": x}), gr_rep_skip_short, None)
     gr_par_split.change(lambda x: params.update({"paragraph_split": x}), gr_par_split, None)
+    gr_par_split_chapter.change(lambda x: params.update({"chapter_start": x}), gr_par_split_chapter, None)
+
+
     gr_radio.change(lambda x: params.update({"out_type": x}), gr_radio, None)
     gr_generate.change(lambda x: params.update({"generate": x}), gr_generate, None)
     gr_generate2.change(lambda x: params.update({"double_gen": x}), gr_generate2, None)
