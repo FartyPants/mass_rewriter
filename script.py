@@ -1202,14 +1202,14 @@ def ui():
                                 save_btn = gr.Button('Save Current Settings')        
 
                         with gr.Row():
-                            preset_type = gr.Dropdown(label="Model Instruct type", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML"], value="Custom")
-                            text_USR = gr.Textbox(value=params['pUSER'], lines=1, label='User string')
-                            text_BOT = gr.Textbox(value=params['pBOT'], lines=1, label='Bot string')
+                            preset_type = gr.Dropdown(label="Model Instruct (OLD))", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML"], value="Custom")
+                            text_USR = gr.Textbox(value=params['pUSER'], lines=1, label='Replace <|user|> with')
+                            text_BOT = gr.Textbox(value=params['pBOT'], lines=1, label='Replace <|bot|> with')
         
                                 
             with gr.Row():
                 with gr.Column(): 
-                    text_in = gr.Textbox(value='', lines=10, label='Text [in]:',elem_classes=['textbox', 'add_scrollbar'])
+                    text_in = gr.Textbox(value='', lines=10, label='Text [in] (in the template as <|context|> keyword):',elem_classes=['textbox', 'add_scrollbar'])
                     with gr.Row():
                         prev_prevbtn = gr.Button('<<')
                         prev_nextbtn = gr.Button('>>')
