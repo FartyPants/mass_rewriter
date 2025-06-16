@@ -683,8 +683,7 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
     
     user = params['pUSER']    
     bot = params['pBOT']
-
-
+   
     baseprompt = str(para_template_text)
 
     baseprompt2 = str(para_template_text2)
@@ -1202,7 +1201,7 @@ def ui():
                                 save_btn = gr.Button('Save Current Settings')        
 
                         with gr.Row():
-                            preset_type = gr.Dropdown(label="Model Instruct (OLD))", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML"], value="Custom")
+                            preset_type = gr.Dropdown(label="Model Instruct (OLD))", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML","Gemma"], value="Custom")
                             text_USR = gr.Textbox(value=params['pUSER'], lines=1, label='Replace <|user|> with')
                             text_BOT = gr.Textbox(value=params['pBOT'], lines=1, label='Replace <|bot|> with')
         
@@ -1303,7 +1302,9 @@ def ui():
         elif x == "OpenAssistant":
             return '<|prompter|>','<|endoftext|><|assistant|>'
         elif x == "ChatML":
-            return '<|im_start|>user','<|im_start|>assistant'
+            return '<|im_start|>user','<|im_end|><|im_start|>assistant'
+        elif x == "Gemma":
+            return '<bos><start_of_turn>user\n','<|context|><end_of_turn>\n<start_of_turn>model'
 
         
         return 'USER:','ASSISTANT:'           
