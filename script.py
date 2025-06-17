@@ -1180,7 +1180,7 @@ def ui():
                                     with gr.Column():
                                         gr_generate = gr.Checkbox(value=params['generate'],label='Generate Output: Text [in]-> (LLM) -> LLM Text [out]')
                                         gr_generate2 =gr.Checkbox(value=params['double_gen'],label='Double-gen: Text [in]-> (LLM) -> (LLM) -> LLM Text [out]')
-                                        gr_radioReverse = gr.Checkbox(label='LLM Output to JSON Instructions (LLM Text [out]) -> JSON [instruction], (Text [in]) -> JSON [output]',value = params['out_reverse'], interactive=True)     
+                                        gr_radioReverse = gr.Checkbox(label='REVERSE Training: LLM Text[out] -> instruction, Text[in] -> output',value = params['out_reverse'], interactive=True)     
                                     
                                         gr_rep_EOL = gr.Checkbox(value=params['replace_eol'],label='Replace \\n in Text [in] with space')
 
@@ -1201,7 +1201,7 @@ def ui():
                                 save_btn = gr.Button('Save Current Settings')        
 
                         with gr.Row():
-                            preset_type = gr.Dropdown(label="Model Instruct (OLD))", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML","Gemma"], value="Custom")
+                            preset_type = gr.Dropdown(label="Model Instruct (OLD))", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML", "Gemma", "Llama 2 (Chat)", "Mistral/Mixtral", "Zephyr","WizardLM", "Solar", "OpenChat", "Phi-2 Instruct", "Nous Hermes"], value="Custom")
                             text_USR = gr.Textbox(value=params['pUSER'], lines=1, label='Replace <|user|> with')
                             text_BOT = gr.Textbox(value=params['pBOT'], lines=1, label='Replace <|bot|> with')
         
@@ -1304,9 +1304,24 @@ def ui():
         elif x == "ChatML":
             return '<|im_start|>user','<|im_end|><|im_start|>assistant'
         elif x == "Gemma":
-            return '<bos><start_of_turn>user\n','<|context|><end_of_turn>\n<start_of_turn>model'
+            return '<bos><start_of_turn>user\n','<end_of_turn>\n<start_of_turn>model'
+        elif x == "Llama 2 (Chat)":
+            return '[INST] ',' [/INST]' # Note: This one's tricky, the [/INST] is the bot's *start* of output
+        elif x == "Mistral/Mixtral":
+            return '[INST] ',' [/INST]' # Similar to Llama 2
+        elif x == "Zephyr":
+            return '<|user|>\n','<|assistant|>\n' # Simplified, without the '</s>'
+        elif x == "WizardLM":
+            return '### Instruction:\n','### Response:\n'
+        elif x == "Solar":
+            return '### User:\n','### Assistant:\n'
+        elif x == "OpenChat":
+            return 'GPT4 User: ','GPT4 Assistant: '
+        elif x == "Phi-2 Instruct":
+            return 'Instruct: ','Output: '
+        elif x == "Nous Hermes":
+            return '### Human:','### Assistant:'
 
-        
         return 'USER:','ASSISTANT:'           
 
     prev_nextbtn.click(preview_next,None,text_in)
