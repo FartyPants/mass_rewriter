@@ -1,7 +1,7 @@
 # mass_rewriter
 Extension for WEbUI
 
-This is a comprehensive script for a "Mass Rewriter" extension. Let's break down its functionality item by item to create a user guide.
+This is a comprehensive script for a "Mass Rewriter" extension. Let's break down its functionality item by item.
 
 ---
 
