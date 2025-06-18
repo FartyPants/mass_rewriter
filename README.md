@@ -218,6 +218,6 @@ This section, below the main input/output text areas, defines how your rewritten
 *   **LLM Choice:** The quality and style of your rewritten text heavily depend on the LLM you have loaded in the main text-generation-webui.
 *   **Token Limits:** Be mindful of your LLM's context window. The `Block size` (during blockification) and `Max new tokens` settings are important for managing this.
 *   **Experimentation:** Many settings interact. It's often best to test with a small subset of your data first to fine-tune your templates and settings before running on a large dataset.
-*   **File Paths:** The extension expects input files in `extensions/mass_rewritter/inputs/` and templates in `extensions/mass_rewritter/Template/`. Output files are saved in `extensions/mass_rewritter/`.
+*   **File Paths:** The extension expects input files in `extensions/mass_rewritter/inputs/` and templates in `extensions/mass_rewritter/Template/`. Output files are saved in `web_ui root folder`.
 
 ---
