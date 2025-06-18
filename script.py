@@ -282,6 +282,33 @@ def add_random_grammatical_errors(text, num_iterations=3):
     return modified_text
 
 
+def export_as_completion_json():
+    global paragraphs
+    global params
+
+    if not paragraphs:
+        print("No text blocks loaded. Please load blockified .txt file first.")
+        return
+
+    # Construct the output file path
+    output_base_name = params.get('output_filename', 'untitled_export').replace('.txt', '')
+    output_directory = Path("extensions/mass_rewritter/outputs/")
+    output_file_name = output_directory / f"{output_base_name}_completion.json"
+
+    # Ensure the output directory exists
+    output_directory.mkdir(parents=True, exist_ok=True)
+
+    completion_data = []
+    for paragraph in paragraphs:
+        completion_data.append({"text": paragraph})
+
+    try:
+        with open(output_file_name, 'w', encoding='utf-8') as f:
+            json.dump(completion_data, f, indent=4)
+        print(f"Exported {len(paragraphs)} blocks to: {output_file_name}")
+    except Exception as e:
+        print(f"Error exporting to JSON: {e}")
+
 # Function to load JSON data safely
 # JSON has both paragraphs and paragraphs_output
 def load_json_data(file, gr_JSONType):
@@ -1124,7 +1151,7 @@ def ui():
                             with gr.Column():
                                 gr_par_split= gr.Textbox(value=params["paragraph_split"], lines=1, label='Block split', interactive=True)
                             text_btn_load = gr.Button('Load', variant='primary', elem_classes="small-button")
-                    with gr.Tab('Blockify normal text'):  
+                    with gr.Tab('Blockify text'):  
                         with gr.Row():
                             gr_block_size = gr.Number(value=params['block_size'],label='Block size (in chars)')
                             gr_par_split_chapter = gr.Textbox(value=params["chapter_start"], lines=1, label='Chapter word', interactive=True)
@@ -1133,6 +1160,9 @@ def ui():
                         with gr.Row():
                             gr_extractNames= gr.Textbox(value='', lines=1, label='Names that appear more than once (most used on top)', interactive=True)
                             gr_extractNames_button = gr.Button('Extract Names', variant='primary', elem_classes="small-button")                             
+                    with gr.Tab('Export'):
+                        with gr.Row():
+                            gr_export_completion_btn = gr.Button('Export Loaded Blocks as Completion JSON', variant='primary')                            
             with gr.Tab('JSON'):
                     with gr.Row():
                         inputfile_text_drop_JSON  = gr.Dropdown(choices=get_available_input_JSON(), label='Input file', elem_classes=['slim-dropdown'], value='None')
@@ -1263,6 +1293,11 @@ def ui():
     gr_convert_to_Block.click(convert_blocks,[inputfile_text_drop, gr_block_size],infotext)
 
     gr_extractNames_button.click(extract_names,[inputfile_text_drop],gr_extractNames)
+
+    gr_export_completion_btn.click(
+        export_as_completion_json,
+        inputs=[],
+        outputs=[])
 
     def cancel_agent():
         global params
