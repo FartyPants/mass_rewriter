@@ -32,61 +32,6 @@ Before you can rewrite anything, you need to load your source text. You have two
     *   **Action:** After selecting the file and JSON Operation, click the **"Load JSON" button**.
     *   **What it Does:** Loads the JSON data according to your chosen operation. See the detailed breakdown below.
 
-### The Four JSON Operations Explained
-
-To understand exactly what each operation does, let's trace a single JSON item through the four possible workflows.
-
-**Our Starting JSON Item:**
-```json
-{
-  "instruction": "Explain gravity in simple terms.",
-  "output": "Gravity is the force that pulls things toward each other. It's why apples fall down instead of up."
-}
-```
-**Our LLM's Goal (set in the Main Template):** We will instruct the LLM to simply "rephrase" the `<|context|>` it receives.
-
----
-**Case 1: `Rewrite Instruction`**
-*   **You choose:** `1. Rewrite Instruction (instruction -> LLM -> instruction)`
-*   **Final Output:** The LLM rephrases the instruction, but the original output is kept.
-    ```json
-    {
-      "instruction": "Can you describe gravity like I'm five?",
-      "output": "Gravity is the force that pulls things toward each other. It's why apples fall down instead of up."
-    }
-    ```
----
-**Case 2: `Rewrite Output`**
-*   **You choose:** `2. Rewrite Output (output -> LLM -> output)`
-*   **Final Output:** The LLM rephrases the output, but the original instruction is kept.
-    ```json
-    {
-      "instruction": "Explain gravity in simple terms.",
-      "output": "Imagine a big bowling ball on a trampoline; that's like a planet bending space. Smaller marbles roll towards it—that's gravity pulling things in."
-    }
-    ```
----
-**Case 3: `Generate New Instruction from Output`**
-*   **You choose:** `3. Generate New Instruction from Output (output -> LLM -> instruction)`
-*   **Final Output:** The LLM creates a brand new question based on the original output.
-    ```json
-    {
-      "instruction": "Why do things fall to the ground?",
-      "output": "Gravity is the force that pulls things toward each other. It's why apples fall down instead of up."
-    }
-    ```
----
-**Case 4: `Generate New Output from Instruction`**
-*   **You choose:** `4. Generate New Output from Instruction (instruction -> LLM -> output)`
-*   **Final Output:** The LLM generates a brand new answer for the original instruction.
-    ```json
-    {
-      "instruction": "Explain gravity in simple terms.",
-      "output": "Gravity is like a cosmic magnet. Every object has it, but bigger things like Earth have a much stronger pull, which is what keeps you on the ground."
-    }
-    ```
----
-
 ## 2. Preparing Your Input Text (Optional Tools)
 
 These tools help you organize or analyze your text before rewriting.
