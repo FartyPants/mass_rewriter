@@ -32,24 +32,7 @@ Before rewriting, you need to load your source text. The extension supports plai
 
 **Tab: `JSON` (for .json files)**
 
-*   **Input file (`inputfile_text_drop_JSON`):**
-    *   **How to Use:** Select your `.json` file from this dropdown. It lists files from the `extensions/mass_rewritter/inputs/` directory.
-    *   Click the refresh button (🔄) if new files aren't visible.
-*   **JSON Type (`gr_JSONType`):** This is crucial for how the JSON data is interpreted and rewritten.
-    *   **`Instruction -> LLM -> Instruction, Output -> Output` (Default):**
-        *   The content of your JSON's `instruction` field is fed to the LLM.
-        *   The LLM's rewritten text replaces the original `instruction` field.
-        *   The original `output` field in your JSON remains unchanged.
-        *   **Use Case:** Ideal if you want to rewrite or augment the "instructions" or "prompts" in your dataset.
-    *   **`Instruction -> Instruction, Output -> LLM -> Output`:**
-        *   The content of your JSON's `output` field is fed to the LLM.
-        *   The LLM's rewritten text replaces the original `output` field.
-        *   The original `instruction` field in your JSON remains unchanged.
-        *   **Use Case:** Ideal if you want to rewrite or augment the "responses" or "completions" in your dataset.
-*   **Load JSON (`text_btn_load_JSON`):**
-    *   **Action:** After selecting the file and the correct `JSON Type`, click this button.
-    *   **What it Does:** Loads the JSON data. The `infotext` area will confirm the number of items loaded and how the fields will be used based on your `JSON Type` selection.
-
+This part changed recently
 ---
 
 ### 2. Preparing Your Input Text (Optional Tools)
