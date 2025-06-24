@@ -5,202 +5,186 @@ This is a comprehensive script for a "Mass Rewriter" extension. Let's break down
 
 ---
 
-## Mass Rewriter: User Guide
 
-The Mass Rewriter extension for text-generation-webui allows you to process large amounts of text (from plain text files or JSON datasets) by applying rewrite instructions using a Large Language Model (LLM). You can customize templates, manage how text is split, and control various aspects of the generation and output.
-
----
-
-### 1. Getting Started: Loading Your Data
-
-Before rewriting, you need to load your source text. The extension supports plain text files (.txt) and JSON files (.json).
-
-**Tab: `Text` (for .txt files)**
-
-*   **Input file (`inputfile_text_drop`):**
-    *   **How to Use:** Select your `.txt` file from this dropdown. It lists files found in the `extensions/mass_rewritter/inputs/` directory.
-    *   Click the refresh button (🔄) next to the dropdown if you've added new files to the `inputs` folder and they don't appear.
-*   **Load Blockified text (Sub-tab):**
-    *   **Block split (`gr_par_split`):**
-        *   **How to Use:** Defines the character sequence that separates individual "blocks" or paragraphs in your plain text file. The default is `\n\n\n` (three newlines).
-        *   **Purpose:** This tells the tool how to divide your text file into manageable chunks for the LLM to process one by one.
-    *   **Load (`text_btn_load`):**
-        *   **Action:** After selecting your file and confirming the `Block split` delimiter, click this button.
-        *   **What it Does:** Loads the text file. The `infotext` area below will confirm the number of paragraphs/blocks loaded. The `Output filename` will also be pre-filled based on your input file and the current model name.
-*   **Blockify normal text (Sub-tab):** (See Section 2: Preparing Your Input Text)
-*   **Extract names (Sub-tab):** (See Section 2: Preparing Your Input Text)
-
-**Tab: `JSON` (for .json files)**
-
-This part changed recently
----
-
-### 2. Preparing Your Input Text (Optional Tools)
-
-These tools are found under the `Text` tab and help pre-process your plain text files.
-
-**Blockify normal text (Sub-tab under `Text`)**
-
-This tool helps convert a standard text file (e.g., a book chapter) into a "blockified" format, where text is split into chunks suitable for LLM processing.
-
-*   **Block size (in chars) (`gr_block_size`):**
-    *   **How to Use:** Enter the maximum desired character length for each block (e.g., `850`).
-*   **Chapter word (`gr_par_split_chapter`):**
-    *   **How to Use:** If your text uses a consistent word to mark new chapters (e.g., "CHAPTER", "Chapter"), enter it here.
-    *   **Purpose:** Helps ensure that chapter headings start new blocks, preventing them from being merged with previous paragraphs.
-*   **Convert to Blocks (`gr_convert_to_Block`):**
-    *   **Action:** After selecting a file in the main `Input file` dropdown (under `Text` tab) and setting the `Block size` / `Chapter word`, click this.
-    *   **What it Does:** Reads the selected `.txt` file, splits it into blocks based on your settings, and saves a *new* `.txt` file in the `extensions/mass_rewritter/inputs/` folder. The new filename will include a suffix like `.blocks850.txt`. You can then load this new blockified file using the "Load Blockified text" tab.
-
-**Extract names (Sub-tab under `Text`)**
-
-*   **Extract Names (`gr_extractNames_button`):**
-    *   **Action:** First, load a plain text file using the "Load Blockified text" tab. Then, click this button.
-    *   **What it Does:** Scans the entire loaded text for words that are likely to be names (capitalized, appear multiple times, and are not common English words or titles). The extracted names, sorted by frequency, will appear in the `Names that appear more than once...` textbox below the button.
-    *   **Use Case:** Helps you identify names in your text that you might want to replace using the "Names" replacement feature (see Section 3).
+Of course. Here is the complete, final user guide, formatted in Markdown for direct use on GitHub. It incorporates all the corrections, clarifications, and new sections we've developed.
 
 ---
 
-### 3. Configuring the Rewriting Process
+# Mass Rewriter: User Guide
 
-This section covers how you instruct the LLM to perform the rewrites.
+This tool helps you automate the process of modifying text in bulk using an AI model. You can load plain text files or JSON datasets, apply various transformations, and then save the rewritten content.
 
-**Accordion: `Edit Template`**
+## 1. Getting Started: Loading Your Data
 
-*   **Template Selector (`para_templates_drop`):**
-    *   **How to Use:** Choose from a list of predefined templates stored in `extensions/mass_rewritter/Template/`. `None` or `default` might be initial options.
-    *   Click the refresh button (🔄) if you've added new template files manually.
-    *   **What it Does:** Loads the selected template's content into the "Main Template" and "Examples" textboxes below.
-*   **Tab: `Main Template` (`para_template_text`):**
-    *   **How to Use:** This is the core instruction given to the LLM for each block of text.
-    *   **Crucial:** You **must** include the placeholder `<|context|>` where the actual text block from your loaded file should be inserted.
-    *   You can also use `<|user|>` and `<|bot|>` placeholders, which will be replaced by the prompts defined in the "Model Instruct Prompts" section (see below).
-    *   *Example:* `Rewrite the following text in a more formal tone:\n<|user|>Here is the text:\n<|context|>\n<|bot|>Here is the formal version:`
-*   **Tab: `Alt Template (for double-gen)` (`para_template_text2`):**
-    *   **How to Use:** If you enable "Double-gen" (see Settings below), the LLM processes each block twice. This template is used for the *second* LLM pass. The output of the first pass becomes the `<|context|>` for this template.
-    *   If left empty, the "Main Template" will be used for both passes.
-*   **Tab: `Examples` (`para_template_exampletext`):**
-    *   **How to Use:** Provide a few examples (few-shot learning) to guide the LLM's output style. Format these examples exactly like your "Main Template", including `<|user|>`, `<|bot|>`, and example `<|context|>` with its desired rewritten version. Separate examples with newlines.
-    *   **Purpose:** Helps the LLM better understand the desired output format and style.
-*   **Tab: `Names` (Name Replacement):**
-    *   **Randomly Replace names/places (`names_replace`):**
-        *   **How to Use:** Check this box to enable automatic name/place replacement in the input text *before* it's sent to the LLM.
-        *   **Important:** This feature is **not compatible** if you have loaded a JSON file and are using one of the "JSON cross modes" (where `JSONType` involves using one JSON field as input and another as static output). It works best with plain text inputs or JSON inputs where only one field is actively processed by the LLM.
-    *   **Female Names (`names_she`), Male Names (`names_he`), Last Names (`names_last`), Towns (`names_places1`), Places/Churches (`names_places2`):**
-        *   **How to Use:** Enter comma-separated lists of names/places into the respective textboxes. For example, in `Female Names`, you might put: `Alice,Betty,Carol`.
-        *   **What it Does:** If `Randomly Replace names/places` is checked, the tool will find occurrences of the names you listed in these boxes within the `<|context|>` text and replace them with a random name from the *internal predefined lists* (e.g., `female_names`, `male_names` hardcoded in the script). The names you enter here are the *targets for replacement*, not the source of replacements.
-        *   **Use Case:** Anonymizing data or creating diverse datasets by varying entities.
-*   **Save Template:**
-    *   **Filename Textbox (`templ_filename`):** Enter a name for your new or modified template (e.g., `my_rewrite_style`). Do not add `.txt`.
-    *   **Save Template (`templ_btn_save`):** Click to save the current content of "Main Template" and "Examples" textboxes.
-    *   **What it Does:** Saves `your_filename.txt` (for Main Template) and `your_filename_examples.txt` (for Examples) into the `extensions/mass_rewritter/Template/` directory. The filename textbox will show `<Saved>` on success. The "Template Selector" dropdown will update.
+Before you can rewrite anything, you need to load your source text. You have two main options:
 
-**Accordion: `Settings` (nested within "Edit Template")**
+### Load Plain Text File (Tab: 'Text')
 
-These settings control the generation process:
+*   **Input File (`inputfile_text_drop`):**
+    *   **How to Use:** Select your `.txt` file from the "Input file" dropdown. The list automatically populates with `.txt` files found in `extensions/mass_rewritter/inputs/`. Click the refresh button (🔄) if you've added new files.
+    *   **Action:** After selecting your file, click the **"Load" button**.
+    *   **What it Does:** This loads the text file into memory, splitting it into individual "blocks" based on the "Block split" setting.
+*   **Block split (`gr_par_split`):**
+    *   **How to Use:** This textbox defines what separates your blocks. `\\n\\n\\n` (three newlines) is the default. You can change this if your file uses a different separator (e.g., `###`).
 
-*   **Generate Output: Text \[in]-> (LLM) -> LLM Text \[out] (`gr_generate`):**
-    *   **How to Use:** Check this to actually use the LLM for rewriting.
-    *   If unchecked, the input text (`<|context|>`) is copied directly to the output. Useful for testing other settings or data flow without LLM calls.
-*   **Double-gen: Text \[in]-> (LLM) -> (LLM) -> LLM Text \[out] (`gr_generate2`):**
-    *   **How to Use:** Check this to process each text block through the LLM twice. The first LLM output becomes the input (`<|context|>`) for the second LLM pass (which uses the "Alt Template" if provided).
-*   **REVERSE Training: LLM Text\[out] -> instruction, Text\[in] -> output (`gr_radioReverse`):**
-    *   **How to Use:** (Primarily for JSON output) If checked, the LLM's generated output will be saved as the `instruction` field in the output JSON, and the original input text (`<|context|>`) will be saved as the `output` field.
-    *   If unchecked (default), the original input text (or its corresponding JSON field key) becomes the `instruction`, and the LLM's output becomes the `output`.
-*   **Replace \\n in Text \[in] with space (`gr_rep_EOL`):**
-    *   **How to Use:** If checked, all single newline characters (`\n`) within the `<|context|>` text are replaced with a space before sending to the LLM.
-*   **Replace \\n\\n with one \\n in Text \[in] (`gr_rep_EOL2`):**
-    *   **How to Use:** If checked, sequences like `\n\n` or `\n \n` in the `<|context|>` are condensed to a single `\n`.
-*   **Internally Remove \\n before it goes to LLM, but keep it in Text \[in] (`gr_rmove_EOL`):**
-    *   **How to Use:** If checked, newlines are temporarily removed from the text sent to the LLM, but the original newlines are preserved in the "Text \[in]" display and in the data saved (e.g., if JSON output saves the original input).
-*   **Add grammatical errors (`gr_add_err`):**
-    *   **How to Use:** Check this to intentionally introduce grammatical errors into the LLM's output.
-*   **Error level (`gr_add_err_level`):**
-    *   **How to Use:** Slider (1-10) to control the frequency/intensity of introduced errors if `Add grammatical errors` is checked.
-*   **Max new tokens (`gr_max_new_tokens`):**
-    *   **How to Use:** Sets the maximum number of tokens the LLM can generate for each rewritten block. This is a primary control from the main WebUI interface reflected here.
-*   **if reply is much longer (3x) than IN: Copy IN -> OUT (otherwise ignore) (`gr_rep_Include_Long`):**
-    *   **How to Use:** If the LLM's output is more than 3 times longer than the input text, checking this will cause the original input text to be used as the output instead. If unchecked, such long replies are still processed (or potentially skipped based on other rules).
-*   **if reply is much shorter (3x) than IN then skip (`gr_rep_skip_short`):**
-    *   **How to Use:** If the LLM's output is less than 1/3 the length of the input text, checking this will cause this item to be skipped entirely (not saved to output).
-*   **SHORT IN cutoff characters (`gr_small_lines`):**
-    *   **How to Use:** Define a character count (e.g., `20`).
-*   **if IN is SHORT: Copy IN -> OUT (otherwise ignore) (`gr_rep_Include`):**
-    *   **How to Use:** If an input text block is shorter than the `SHORT IN cutoff characters`, checking this will copy the original input directly to the output without LLM processing.
-*   **Repeat each block n times (`repeat_times`):**
-    *   **How to Use:** Enter a number (e.g., `3`). Each input block will be processed by the LLM this many times, potentially generating different outputs if your model/settings have randomness.
-*   **Save Current Settings (`save_btn`):**
-    *   **Action:** Click to save all current settings from this accordion (and other persistent params like User/Bot prompts, output type) to `massrewriter.json` in the extension's root directory. These settings will be loaded the next time you open the extension.
+### Load JSON File (Tab: 'JSON')
 
-**Model Instruct Prompts (Section below `Settings` accordion, above `Text [in]`)**
+*   **Input File (`inputfile_text_drop_JSON`):**
+    *   **How to Use:** Select your `.json` file from this dropdown. The list will populate with `.json` files from `extensions/mass_rewritter/inputs/`.
+*   **JSON Operation (`gr_JSONType`):**
+    *   **How to Use:** This is the most crucial setting for JSON. It tells the tool exactly how to process your data. Select one of the four unambiguous operations.
+    *   **Action:** After selecting the file and JSON Operation, click the **"Load JSON" button**.
+    *   **What it Does:** Loads the JSON data according to your chosen operation. See the detailed breakdown below.
 
-This section defines the user and assistant/bot markers used in your templates.
+### The Four JSON Operations Explained
 
-*   **Model Instruct (OLD) (`preset_type`):**
-    *   **How to Use:** Select a model type (e.g., "Alpaca", "Vicuna", "ChatML").
-    *   **What it Does:** Automatically fills the `Replace <|user|> with` and `Replace <|bot|> with` fields with common prompt formats for that model type. Select "Custom" to define them manually.
-*   **Replace <|user|> with (`text_USR`):**
-    *   **How to Use:** The text here will replace `<|user|>` in your "Main Template" and "Examples".
-*   **Replace <|bot|> with (`text_BOT`):**
-    *   **How to Use:** The text here will replace `<|bot|>` in your "Main Template" and "Examples".
+To understand exactly what each operation does, let's trace a single JSON item through the four possible workflows.
+
+**Our Starting JSON Item:**
+```json
+{
+  "instruction": "Explain gravity in simple terms.",
+  "output": "Gravity is the force that pulls things toward each other. It's why apples fall down instead of up."
+}
+```
+**Our LLM's Goal (set in the Main Template):** We will instruct the LLM to simply "rephrase" the `<|context|>` it receives.
 
 ---
-
-### 4. Output Configuration
-
-This section, below the main input/output text areas, defines how your rewritten data is saved.
-
-*   **Output: JSON or Plain TEXT (`gr_radio`):**
-    *   **JSON:** Saves output as a JSON Lines file (`.json`), where each line is a JSON object typically containing "instruction" and "output" fields (or as configured by `REVERSE Training`).
-    *   **Plain TEXT:** Saves output as a `.txt` file, where each rewritten block is separated by the delimiter defined in `Plain text paragraph separator`.
-*   **JSON instruct (ALT on separate lines) (`text_instruct`):**
-    *   **How to Use:** (Only if `Output` is JSON) This text becomes the content of the `instruction` field in your output JSON (unless `REVERSE Training` is used, or if loading from JSON and the instruction field is preserved).
-    *   If you provide multiple lines of text here, the script will cycle through them for each entry in the output JSON.
-    *   *Example:* If your main template is just `<|context|>`, you could put `Rewrite this:` here.
-*   **Output filename (`out_filename`):**
-    *   **How to Use:** The base name for your output file (e.g., `my_rewritten_data`). The extension (`.json` or `.txt`) will be added automatically. This is usually pre-filled when you load an input file.
-*   **Plain text paragraph separator (`plaintext_instruct`):**
-    *   **How to Use:** (Only if `Output` is Plain TEXT) Defines the characters that separate each rewritten block in the output `.txt` file. Default is `\n\n` (two newlines).
-
+**Case 1: `Rewrite Instruction`**
+*   **You choose:** `1. Rewrite Instruction (instruction -> LLM -> instruction)`
+*   **Final Output:** The LLM rephrases the instruction, but the original output is kept.
+    ```json
+    {
+      "instruction": "Can you describe gravity like I'm five?",
+      "output": "Gravity is the force that pulls things toward each other. It's why apples fall down instead of up."
+    }
+    ```
+---
+**Case 2: `Rewrite Output`**
+*   **You choose:** `2. Rewrite Output (output -> LLM -> output)`
+*   **Final Output:** The LLM rephrases the output, but the original instruction is kept.
+    ```json
+    {
+      "instruction": "Explain gravity in simple terms.",
+      "output": "Imagine a big bowling ball on a trampoline; that's like a planet bending space. Smaller marbles roll towards it—that's gravity pulling things in."
+    }
+    ```
+---
+**Case 3: `Generate New Instruction from Output`**
+*   **You choose:** `3. Generate New Instruction from Output (output -> LLM -> instruction)`
+*   **Final Output:** The LLM creates a brand new question based on the original output.
+    ```json
+    {
+      "instruction": "Why do things fall to the ground?",
+      "output": "Gravity is the force that pulls things toward each other. It's why apples fall down instead of up."
+    }
+    ```
+---
+**Case 4: `Generate New Output from Instruction`**
+*   **You choose:** `4. Generate New Output from Instruction (instruction -> LLM -> output)`
+*   **Final Output:** The LLM generates a brand new answer for the original instruction.
+    ```json
+    {
+      "instruction": "Explain gravity in simple terms.",
+      "output": "Gravity is like a cosmic magnet. Every object has it, but bigger things like Earth have a much stronger pull, which is what keeps you on the ground."
+    }
+    ```
 ---
 
-### 5. Running and Monitoring
+## 2. Preparing Your Input Text (Optional Tools)
 
-*   **Text \[in] (`text_in`):**
-    *   Displays the current text block (`<|context|>`) being processed.
-    *   **`<<` (`prev_prevbtn`) and `>>` (`prev_nextbtn`):** Use these buttons to manually preview the loaded input blocks *before* starting the main process.
-*   **LLM Text \[out] (`text_out`):**
-    *   Displays the LLM's generated output for the current "Text \[in]".
-*   **Start (`start_btn`):**
-    *   **Action:** Click to begin the mass rewriting process based on all your configurations.
-    *   **Monitoring:** The area below this button (`infotext2` and a temporary HTML display `gr_htmlDisp`) will show:
-        *   Progress (e.g., `Epoch: 1/1 : Progress: X/Y`)
-        *   Speed (iterations/second or seconds/iteration)
-        *   Elapsed time and estimated time remaining.
-*   **Cancel (`cancel_btn`):**
-    *   **Action:** Click to stop the ongoing process. The tool will attempt to finish the current item and save any work done so far before stopping.
-*   **Infotext Area (`infotext2`):**
-    *   Shows status messages like "Ready", "Preparing...", "Starting...", "Interrupted", or "Finished".
+These tools help you organize or analyze your text before rewriting.
 
----
+*   **Blockify Text (Tab: 'Text' -> 'Blockify text'):**
+    *   **What it Does:** Takes a selected plain text file and breaks it down into smaller, consistently sized blocks. It saves a *new* `.txt` file (e.g., `mybook.blocks850.txt`) in the `inputs` folder. This is useful for processing long documents that aren't already separated into paragraphs.
+*   **Extract Names (Tab: 'Text' -> 'Extract names'):**
+    *   **What it Does:** Scans the selected plain text file and lists frequently occurring proper nouns. This helps you quickly identify names to use with the "Randomly Replace names/places" feature.
+*   **Export (Tab: 'Text' -> 'Export'):**
+    *   **What it Does:** Takes the currently loaded text blocks and saves them as a simple JSONL file where each line is `{"text": "your text block"}`. This is ideal for preparing data for completion model fine-tuning.
 
-### 6. Saving Your Results
+## 3. Configuring the Rewriting Process (Templates & Settings)
 
-*   **Automatic Saving:**
-    *   During a long run, the tool automatically saves the current output (JSON or TXT) every 10 processed items. This prevents data loss if the process is interrupted.
-    *   When starting a JSON output generation, if an `output.json` (or your custom named file) already exists, it will be backed up to `output_backup.json`.
-*   **Final Save:**
-    *   When the process completes normally or is canceled via the `Cancel` button, the full output file is saved to the extension's root directory (e.g., `extensions/mass_rewritter/output.json` or `extensions/mass_rewritter/your_filename.txt`).
-*   **Persistent Settings:**
-    *   Clicking "Save Current Settings" in the `Settings` accordion saves your configuration to `massrewriter.json`.
+This is where you tell the AI *how* to rewrite your text.
 
----
+### Edit Template (Accordion)
 
-### 7. Important Considerations
+*   **Template Selector (`para_templates_drop`):** Choose a pre-saved prompt template.
+*   **Main Template (`para_template_text`):** Your primary instruction to the LLM. **Crucially, include the `<|context|>` placeholder**, which is where the text from your loaded file will be inserted.
+*   **Alt Template (for double-gen) (`para_template_text2`):** A secondary prompt used for the second pass if `Double-generation` is enabled. If empty, the Main Template is used for both passes.
+*   **Examples (`para_template_exampletext`):** Provide "few-shot" examples to better guide the LLM's output style.
+*   **Save Template:** Save your current Main Template and Examples for future use.
 
-*   **LLM Choice:** The quality and style of your rewritten text heavily depend on the LLM you have loaded in the main text-generation-webui.
-*   **Token Limits:** Be mindful of your LLM's context window. The `Block size` (during blockification) and `Max new tokens` settings are important for managing this.
-*   **Experimentation:** Many settings interact. It's often best to test with a small subset of your data first to fine-tune your templates and settings before running on a large dataset.
-*   **File Paths:** The extension expects input files in `extensions/mass_rewritter/inputs/` and templates in `extensions/mass_rewritter/Template/`. Output files are saved in `web_ui root folder`.
+### A Short Guide to Crafting Effective Templates
 
----
+The **Main Template** is the most powerful feature of the Mass Rewriter. It is the blueprint for every single prompt that gets sent to the language model.
+
+#### The Three Magic Placeholders
+
+1.  **`<|context|>` (Mandatory):** This is where the actual text from your source file will be inserted. **Your template must always contain `<|context|>` exactly once.**
+2.  **`<|user|>` (Recommended):** This placeholder is replaced by whatever you have in the **User String** field (e.g., `### Human:`, `USER:`). It helps create structured, chat-like prompts.
+3.  **`<|bot|>` (Recommended):** This placeholder is replaced by whatever you have in the **Assistant String** field (e.g., `### Assistant:`, `[/INST]`). It signals to the model where its response should begin.
+
+#### Example Template
+*   **Your Main Template:**
+    ```
+    <|user|>
+    Act as a scientist and explain this concept to a five-year-old.
+    
+    Concept: <|context|>
+    
+    <|bot|>
+    ```
+*   **What the LLM Actually Sees:**
+    ```
+    [INST] 
+    Act as a scientist and explain this concept to a five-year-old.
+    
+    Concept: The sun is a star at the center of the Solar System...
+    
+    [/INST]
+    ```
+    (Assuming Llama 2 format was selected)
+
+### Settings (Accordion)
+
+*   **Generate with LLM (`gr_generate`):** Uncheck this to test the data flow without using the LLM. The tool will simply copy the source text based on your JSON Operation.
+*   **Double-generation (`gr_generate2`):** Processes each item with the LLM twice for more refined results.
+*   **For Plain Text: Generate `instruction` from text (`gr_radioReverse`):**
+    *   **How to Use:** This checkbox **only affects Plain Text workflows**. When checked, the LLM's goal is to generate the `instruction` field, and the original text is copied to the `output` field.
+    *   **Use Case:** Ideal for creating instruction/response pairs from a list of raw texts.
+*   **Add grammatical errors (`gr_add_err`):** Intentionally adds grammatical mistakes to the LLM's final output.
+*   **Skip if reply is >3x longer than input (`gr_rep_skip_Long`):** If the LLM generates an unusually long response, the entire item is skipped.
+*   **Skip if input is shorter than (chars) (`gr_small_lines`):** Prevents the tool from processing very short or empty lines.
+*   **Repeat each item N times (`repeat_times`):** Processes each input item multiple times to augment your dataset.
+*   **Save All Settings (`save_btn`):** Saves all your current settings to `massrewriter.json`.
+
+### Instruction Format (User/Assistant Strings)
+
+*   **Instruction Format Preset (`preset_type`):** Select a well-known model format (e.g., "Alpaca," "ChatML") to automatically fill the User/Assistant strings below.
+*   **User String (`text_USR`) & Assistant String (`text_BOT`):** These fields define what the `<|user|>` and `<|bot|>` placeholders in your template are replaced with.
+
+### Names (Tab: 'Names')
+
+*   **Randomly Replace names/places (`names_replace`):**
+    *   **How to Use:** Check to enable name replacement. **Note:** This feature is incompatible with JSON workflows and will be automatically disabled.
+    *   **What it Does:** Replaces names you list in the boxes below with random names from the tool's built-in lists.
+
+## 4. Output Configuration
+
+*   **Output Format (`gr_radio`):** Choose to save as a structured `JSON` file or a simple `Plain TEXT` file (containing only LLM outputs).
+*   **Prefix for `instruction` field (`text_instruct`):** Adds a prefix to the `instruction` field in the final JSON. If you enter multiple lines, it will cycle through them.
+*   **Output filename (`out_filename`):** The base name for your output file (e.g., `my_data_rewritten`).
+
+## 5. Running and Monitoring
+
+*   **Start (`start_btn`):** Begins the bulk processing job.
+*   **Cancel (`cancel_btn`):** Safely stops the current job and saves all progress made so far.
+*   **Text [in] & LLM Text [out]:** These boxes show the current text being processed by the LLM and its real-time response.
+*   **`<<` & `>>` buttons:** Manually browse through the loaded input blocks before starting a job.
+*   **Progress Bar & Timers:** The area below the Start/Cancel buttons provides real-time progress, speed (it/s), and estimated time remaining.
+
+## 6. Saving Your Results
+
+*   **Automatic Saving:** Progress is saved automatically every 10 items.
+*   **Final Save:** The complete output file is saved when the job finishes or is canceled.
+*   **Backup:** When starting a new job, the tool automatically backs up your previous output file (e.g., `output_backup.json`) to prevent accidental data loss.
