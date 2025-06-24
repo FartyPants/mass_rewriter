@@ -65,27 +65,6 @@ The **Main Template** is the most powerful feature of the Mass Rewriter. It is t
 2.  **`<|user|>` (Recommended):** This placeholder is replaced by whatever you have in the **User String** field (e.g., `### Human:`, `USER:`). It helps create structured, chat-like prompts.
 3.  **`<|bot|>` (Recommended):** This placeholder is replaced by whatever you have in the **Assistant String** field (e.g., `### Assistant:`, `[/INST]`). It signals to the model where its response should begin.
 
-#### Example Template
-*   **Your Main Template:**
-    ```
-    <|user|>
-    Act as a scientist and explain this concept to a five-year-old.
-    
-    Concept: <|context|>
-    
-    <|bot|>
-    ```
-*   **What the LLM Actually Sees:**
-    ```
-    [INST] 
-    Act as a scientist and explain this concept to a five-year-old.
-    
-    Concept: The sun is a star at the center of the Solar System...
-    
-    [/INST]
-    ```
-    (Assuming Llama 2 format was selected)
-
 ### Settings (Accordion)
 
 *   **Generate with LLM (`gr_generate`):** Uncheck this to test the data flow without using the LLM. The tool will simply copy the source text based on your JSON Operation.
