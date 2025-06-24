@@ -67,7 +67,7 @@ specific_church_names = [
 ]
 
 
-paragraphs = []
+paragraphs_input = []
 paragraphs_output = []
 
 current_prev = 0
@@ -77,14 +77,20 @@ plaintextfile = ''
 file_nameJSON = "output.json"
 file_nameTXT = "output.txt"
 
-JSON_TYPE = ['Instruction -> LLM -> Instruction, Output -> Output','Instruction -> Instruction, Output -> LLM -> Output']
+JSON_TYPE = [
+    '1. Rewrite Instruction (instruction -> LLM -> instruction)',
+    '2. Rewrite Output (output -> LLM -> output)',
+    '3. Generate New Instruction from Output (output -> LLM -> instruction)',
+    '4. Generate New Output from Instruction (instruction -> LLM -> output)'
+]
+
 params = {
         "display_name": "Mass Rewritter",
         "is_tab": True,
         "done":False,
         "pUSER": 'USER:',
         "pBOT": 'ASSISTANT:',
-        "instruct":'Rewrite the following text: ',
+        "instruct":'',
         "final-save":True,
         "replace_eol": False,
         "limit_short":20,
@@ -115,6 +121,7 @@ params = {
         'chapter_start': 'CHAPTER',
         'add_errors': False,
         'error_level':3,
+        'skip_long': False,
 }
 default_req_params = {
     'max_new_tokens': 200,
@@ -283,10 +290,10 @@ def add_random_grammatical_errors(text, num_iterations=3):
 
 
 def export_as_completion_json():
-    global paragraphs
+    global paragraphs_input
     global params
 
-    if not paragraphs:
+    if not paragraphs_input:
         print("No text blocks loaded. Please load blockified .txt file first.")
         return
 
@@ -299,23 +306,23 @@ def export_as_completion_json():
     output_directory.mkdir(parents=True, exist_ok=True)
 
     completion_data = []
-    for paragraph in paragraphs:
-        completion_data.append({"text": paragraph})
+    for input in paragraphs_input:
+        completion_data.append({"text": input})
 
     try:
         with open(output_file_name, 'w', encoding='utf-8') as f:
             json.dump(completion_data, f, indent=4)
-        print(f"Exported {len(paragraphs)} blocks to: {output_file_name}")
+        print(f"Exported {len(paragraphs_input)} blocks to: {output_file_name}")
     except Exception as e:
         print(f"Error exporting to JSON: {e}")
 
 # Function to load JSON data safely
-# JSON has both paragraphs and paragraphs_output
+# JSON has both paragraphs_input and paragraphs_output
 def load_json_data(file, gr_JSONType):
     global params
     global JSON_TYPE
 
-    global paragraphs
+    global paragraphs_input
     global paragraphs_output
 
     jsonNum = 0
@@ -327,7 +334,7 @@ def load_json_data(file, gr_JSONType):
 
     left_key = 'instruction'
     right_key = 'output'
-    paragraphs = []
+    paragraphs_input = []
     paragraphs_output = []
 
     path = get_file_pathJSON('inputs',file)
@@ -339,22 +346,21 @@ def load_json_data(file, gr_JSONType):
             if json_in_data:
                 #first_item_keys = list(json_in_data[0].keys())
             # Extract 'input' and 'output' values into the arrays
-                if jsonNum ==0:
+
+      
+            # Cases 1 and 4 use 'instruction' as the source for the LLM
+                if jsonNum in [0, 3]:  # Corresponds to '1. Rewrite Instruction' and '4. Generate New Output'
                     for item in json_in_data:
-                        paragraphs.append(item[left_key])
-                        paragraphs_output.append(item[right_key])
-
-
-                    return f"JSON data Items: {len(paragraphs)}, the `{left_key}` will be used as input `(Text [in]`, and the `{right_key}` will be used as `original stand-in Text [in]` written in output JSON"
-                elif jsonNum == 1:
+                        paragraphs_input.append(item.get(left_key, ''))
+                        paragraphs_output.append(item.get(right_key, ''))
+                    return f"JSON data Items: {len(paragraphs_input)}. Operation: Using `{left_key}` as input for the LLM."
+                # Cases 2 and 3 use 'output' as the source for the LLM
+                elif jsonNum in [1, 2]: # Corresponds to '2. Rewrite Output' and '3. Generate New Instruction'
                     for item in json_in_data:
-                        paragraphs.append(item[right_key])
-                        paragraphs_output.append(item[left_key])
+                        paragraphs_input.append(item.get(right_key, ''))
+                        paragraphs_output.append(item.get(left_key, ''))
+                    return f"JSON data Items: {len(paragraphs_input)}. Operation: Using `{right_key}` as input for the LLM."
 
-                    return f"JSON data Items: {len(paragraphs)}, the `{right_key}` will be used as input `(Text [in]`, and the `{left_key}` will be used as `original stand-in Text [in]` written in input JSON"                    
-
-                #for key in first_item_keys:
-                #    print(key)
             else:
 
                 print("JSON data is empty or couldn't be loaded.")
@@ -502,7 +508,7 @@ def convert_blocks(inputfile_text_drop,gr_block_size):
     # Split the text by '\n' into an array
     text_array = input_text.split('\n')
 
-    # Initialize an empty list to store the final paragraphs
+    # Initialize an empty list to store the final paragraphs_input
     final_paragraphs = []
 
     # Initialize a variable to keep track of the current paragraph
@@ -563,13 +569,13 @@ def convert_blocks(inputfile_text_drop,gr_block_size):
     
     
 
-# TEXT file has only paragraphs and paragraphs_output = []
+# TEXT file has only paragraphs_input and paragraphs_output = []
 def load_file(filep):
-    global paragraphs
+    global paragraphs_input
     global paragraphs_output
     global params
     
-    paragraphs = []
+    paragraphs_input = []
     paragraphs_output = []
     path = get_file_path('inputs',filep)
 
@@ -590,13 +596,13 @@ def load_file(filep):
     
     #print(f"Split: {split_temp} end")
 
-    paragraphs = file_content.split(split_temp)
-    paragraphs = [paragraph.rstrip('\n').lstrip('\n') for paragraph in paragraphs]
+    paragraphs_input = file_content.split(split_temp)
+    paragraphs_input = [paragraph.rstrip('\n').lstrip('\n') for paragraph in paragraphs_input]
 
-    paragraphs = list(filter(lambda x: x.strip(), paragraphs))
-    num_paragraphs = len(paragraphs)
-    print((f"paragraphs: {num_paragraphs}"))
-    infotext = f"Loaded Paragraphs: {num_paragraphs}"
+    paragraphs_input = list(filter(lambda x: x.strip(), paragraphs_input))
+    num_paragraphs = len(paragraphs_input)
+    print((f"Number of Items: {num_paragraphs}"))
+    infotext = f"Loaded Items: {num_paragraphs}"
 
     modelname = f"_{shared.model_name}"
     modelname = modelname.replace('-','_')
@@ -638,7 +644,7 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
     global plaintextfile
     global jsonfile
     global paragraphs_output
-    global paragraphs
+    global paragraphs_input
     global file_nameJSON
     global file_nameTXT
 
@@ -671,9 +677,7 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
     #print(f"top_p: {summary_state['top_p']}")
     #print(f"top_k: {summary_state['top_k']}")
     print(f"Min char: {short_num}")
-    print(f"Include Short: {params['include_short']}")
-    print(f"Include Long: {params['include_long']}")
-    print(f"Skip short: {params['skip_short']}")
+    print(f"Skip Long: {params['skip_long']}")
     print(f"Replace EOL: {params['replace_eol']}")
     print(f"Replace EOL + EOL: {params['replace_eol2']}") 
     
@@ -753,25 +757,33 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
 
     jason_inp = False
 
-    if len(paragraphs_output)>0:
-
-        if params['JSONType'] == 0: 
-            if reverse:
-                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'instructions' -> Text [in] -> {RED}LLM Text [out] -> JSON 'instructions'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'output'{RESET}")
-            else:
-                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'instructions' -> Text [in] -> {RED}LLM Text [out] -> JSON 'output'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'instructions'{RESET}")
-        if params['JSONType'] == 1: 
-            if reverse:
-                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'output' -> Text [in] -> {RED}LLM Text [out] -> JSON 'instructions'{RESET} and {YELLOW}(loaded JSON) 'oputput' -> JSON 'output'{RESET}")
-            else:
-                print (f"{RED}JSON cross case{RESET} - (loaded JSON) 'output' -> Text [in] -> {RED}LLM Text [out] -> JSON 'output'{RESET} and {YELLOW}(loaded JSON) 'input' -> JSON 'input'{RESET}")
-
+    # json has paragraphs_output
+ # Check if we are in a JSON workflow by seeing if paragraphs_output has been populated.
+    if len(paragraphs_output) > 0:
         jason_inp = True
-    else:
+        print(f"{GREEN}JSON Workflow Detected.{RESET} The 'REVERSE' checkbox has no effect.")
+        
+        # Use a match/case to print the status for the selected JSON operation.
+        match params['JSONType']:
+            case 0: # Rewrite Instruction
+                print(f"Operation: {YELLOW}Rewrite Instruction{RESET}. Source `instruction` -> {RED}LLM{RESET} -> New `instruction`. Original `output` is preserved.")
+            case 1: # Rewrite Output
+                print(f"Operation: {YELLOW}Rewrite Output{RESET}. Source `output` -> {RED}LLM{RESET} -> New `output`. Original `instruction` is preserved.")
+            case 2: # Generate New Instruction from Output
+                print(f"Operation: {YELLOW}Generate New Instruction{RESET}. Source `output` -> {RED}LLM{RESET} -> New `instruction`. Original `output` becomes the new `output`.")
+            case 3: # Generate New Output from Instruction
+                print(f"Operation: {YELLOW}Generate New Output{RESET}. Source `instruction` -> {RED}LLM{RESET} -> New `output`. Original `instruction` becomes the new `instruction`.")
+            case _:
+                print(f"{RED}Warning: Unknown JSONType selected.{RESET}")
+
+    else: # This is a Plain Text to JSON workflow.       
+        
+        print(f"{GREEN}Plain Text Workflow Detected.{RESET} The 'REVERSE' checkbox is active.")
+        
         if reverse:
-            print (f"{RED}[LLM Output to JSON Instructions]{RESET} Text [in] -> {RED}LLM Text [out] -> JSON 'instructions'{RESET} and {YELLOW}Text [in] -> JSON 'output'{RESET}")
+            print(f"Text[in] -> {RED}LLM{RESET} -> New `instruction`. Text[in] -> {YELLOW}New `output` (copy){RESET}.")
         else:
-            print (f"Text [in] -> {RED}LLM Text [out] -> JSON 'output'{RESET} and {YELLOW}Text [in] -> JSON 'instructions'{RESET}")
+            print(f"Text[in] -> {YELLOW}New instruction (copy){RESET}. Text[in] -> {RED}LLM{RESET} -> New output.")
 
     if params['double_gen']:
         print(f"{RED}[double generation]{RESET} The Text[in] will be processed twice in LLM: {RED}Text[in] -> LLM -> LLM -> Text[out]{RESET}")
@@ -792,12 +804,14 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
 
     for epch in range(num):   
 
-        for index, paragraph in enumerate(paragraphs):
-        #for paragraph in paragraphs:
-            repolacement_out = paragraph
+        for index, input in enumerate(paragraphs_input):
+
+            original_input = input
+
+            original_output = ''
 
             if jason_inp and index<len(paragraphs_output):
-                repolacement_out = paragraphs_output[index]
+                original_output = paragraphs_output[index]
 
             jsoninputLN = ''
             if num_lines>0:
@@ -811,37 +825,37 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
                 break
 
             i = i+1
-            paragraph = paragraph.rstrip("\n")
-            paragraph = paragraph.lstrip("\n")
+            input = input.rstrip("\n")
+            input = input.lstrip("\n")
 
             if params['replace_eol2']==True:
-                paragraph = paragraph.replace('\n\n','\n')
-                paragraph = paragraph.replace('\n \n','\n')
+                input = input.replace('\n\n','\n')
+                input = input.replace('\n \n','\n')
 
             if params['replace_eol']==True:
-                paragraph = paragraph.replace('\n',' ')
+                input = input.replace('\n',' ')
 
-            paragraph = paragraph.replace('  ',' ')
+            input = input.replace('  ',' ')
 
             if b_replaceNames:
-                paragraph = replace_names_with_replace(paragraph,female_names,names_she)
-                paragraph = replace_names_with_replace(paragraph,male_names,names_he)
-                paragraph = replace_names_with_replace(paragraph,last_names,names_last)
-                paragraph = replace_names_with_replace(paragraph,british_towns,names_places1)
-                paragraph = replace_names_with_replace(paragraph,specific_church_names,names_places2)
+                input = replace_names_with_replace(input,female_names,names_she)
+                input = replace_names_with_replace(input,male_names,names_he)
+                input = replace_names_with_replace(input,last_names,names_last)
+                input = replace_names_with_replace(input,british_towns,names_places1)
+                input = replace_names_with_replace(input,specific_church_names,names_places2)
 
 
             #hasQuoteIn = False
-            #if '"' in paragraph:
+            #if '"' in input:
             #    hasQuoteIn  = True
 
-            #if paragraph.lower().startswith("chapter"):
+            #if input.lower().startswith("chapter"):
             #    continue
 
             infotext = "Starting"
             html = "<h1>Starting</h1>"
 
-            if paragraph:
+            if input:
                 
 
                 time_elapsed = time.perf_counter() - start_time
@@ -855,37 +869,45 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
                     else:
                         timer_info = f"`{1.0/its:.2f}` s/it"
 
-                    total_time_estimate = (1.0 / its) * (len(paragraphs)*num)
+                    total_time_estimate = (1.0 / its) * (len(paragraphs_input)*num)
 
 
-                print(f"{i}/{len(paragraphs)}")
+                print(f"{i}/{len(paragraphs_input)}")
 
-                infotext = f"Epoch: {(epch+1)}/{num} : Progress: {i}/{len(paragraphs)*num}  {timer_info}, {format_time(time_elapsed)} / {format_time(total_time_estimate)} ... {format_time(total_time_estimate - time_elapsed)} remaining"
+                infotext = f"Epoch: {(epch+1)}/{num} : Progress: {i}/{len(paragraphs_input)*num}  {timer_info}, {format_time(time_elapsed)} / {format_time(total_time_estimate)} ... {format_time(total_time_estimate - time_elapsed)} remaining"
 
-                #progress_text = f"<h1>Progress: {i}/{len(paragraphs)*num}</h1>"
+                #progress_text = f"<h1>Progress: {i}/{len(paragraphs_input)*num}</h1>"
                 #time_info_text = f"<p>{format_time(time_elapsed)} / {format_time(total_time_estimate)}</p>"
 
-                progress_text = f"<p></p><h1 style='text-align: center;'>{i}/{len(paragraphs)*num}</h1>"
+                progress_text = f"<p></p><h1 style='text-align: center;'>{i}/{len(paragraphs_input)*num}</h1>"
                 time_info_text = f"<p style='text-align: center;'>{format_time2(time_elapsed)} / {format_time2(total_time_estimate)}</p>"
                 time_info_text2 = f"<p style='text-align: center;'>{format_time2(total_time_estimate - time_elapsed)} remaining</p>"
 
                 html = f"<div style='text-align: center;'>{progress_text}{time_info_text}{time_info_text2}</div>"
 
                 #html = progress_text + time_info_text
-                #html = f"Progress: {i}/{len(paragraphs)*num} {format_time(time_elapsed)} / {format_time(total_time_estimate)}"
+                #html = f"Progress: {i}/{len(paragraphs_input)*num} {format_time(time_elapsed)} / {format_time(total_time_estimate)}"
 
                 if removeEOL_beforeLLM:
                     # just internally replace \n with space
-                    prompt = baseprompt.replace('<|context|>', paragraph.replace('\n',' '))   
+                    prompt = baseprompt.replace('<|context|>', input.replace('\n',' '))   
                 else:
-                    prompt = baseprompt.replace('<|context|>', paragraph)   
+                    prompt = baseprompt.replace('<|context|>', input)   
 
                 
                 #if params['replace_eol']==False:
-                #   paragraph = paragraph.replace('\n','\\n')
+                #   input = input.replace('\n','\\n')
 
-                paragrap_length = len(paragraph)
-                if paragrap_length>short_num:
+                paragrap_length = len(input)
+
+                include = True
+
+                if paragrap_length<short_num:
+                    include = False
+
+
+                if include:
+                    
                     reply = ''
 
                     if params['generate']:
@@ -944,78 +966,46 @@ def mainloop(para_template_text,para_template_text2, para_template_exampletext, 
                         reply_length = paragrap_length
 
                     
+                    if reply_length > paragrap_length*3 and params['skip_long']:
+                        reply_length = 0 
+                    
                     if reply_length>0:
                         #if ('"' not in reply) and (hasQuoteIn):
-                        #    paragraph = paragraph.replace('"','')
-                        paragraph_orig  =  paragraph
-                        if jason_inp and repolacement_out!='':
-                            paragraph_orig  =  repolacement_out
-                     
-                        if reply_length > paragrap_length*3:
-                            print("Too weird reply")
-                            if params['include_long']:
-                                # copy unchanged
-                                reply = paragraph
-                                if reverse:
-                                    inout = jsoninputLN + reply
-                                    jsonfile.append({
-                                        "instruction": inout,
-                                        "output": paragraph_orig
-                                    })
-                                else:
-                                    inout = jsoninputLN + paragraph_orig
-                                    jsonfile.append({
-                                        "instruction": inout,
-                                        "output": reply
-                                    })
-    
-                                
-                                plaintextfile = plaintextfile + reply + plain_txt_delim
-                                print(f"LONG -> Copy ")
-
+                        #    input = input.replace('"','')
+                        # Are we in a JSON workflow?
+                        if jason_inp:
+                            # Use the new, explicit logic for the 4 JSON cases
+                            match params['JSONType']:
+                                # Case 1: Rewrite Instruction (instruction -> LLM -> instruction) output field is carried over unchanged
+                                case 0:
+                                    jsonfile.append({"instruction": jsoninputLN + reply, "output": original_output})
+                                # Case 2: Rewrite Output (output -> LLM -> output)  The original instruction field is carried over unchanged.
+                                case 1:
+                                    jsonfile.append({"instruction": original_output, "output": reply})
+                                # Case 3: Generate New Instruction from Original Output (output -> LLM -> instruction) 
+                                case 2:
+                                    # 'input' is the original output, 'reply' is the new instruction
+                                    jsonfile.append({"instruction": jsoninputLN + reply, "output": original_input})
+                                # Case 4: Generate New Output from Original Instruction (instruction -> LLM -> output)
+                                case 3:
+                                    # 'input' is the original instruction, 'reply' is the new output
+                                    jsonfile.append({"instruction": original_input, "output": reply})
                         else:
-                            skip = False
-                            if params['skip_short'] and (reply_length < paragrap_length/3):
-                                skip = True
-
-                            if skip==False:        
-                                if reverse:
-                                    inout = jsoninputLN + reply
-                                    
-                                    jsonfile.append({
-                                        "instruction": inout,
-                                        "output": paragraph_orig
-                                    })
-                                else:
-                                    inout = jsoninputLN + paragraph_orig
-                                    
-                                    jsonfile.append({
-                                        "instruction": inout,
-                                        "output": reply
-                                    })
+                            # Fallback to old logic for Plain Text files
+                            if reverse:
+                                jsonfile.append({"instruction": jsoninputLN + reply,"output": input})
                             else:
-                                print("Skipping as too short answer")
+                                jsonfile.append({"instruction": jsoninputLN + input,"output": reply})
+            
 
-                            plaintextfile = plaintextfile + reply + plain_txt_delim
-                            print(f"\033[38;5;8m{reply}\033[0;37;0m\n--------------------")
+                        plaintextfile = plaintextfile + reply + plain_txt_delim
+                        print(f"\033[38;5;8m{reply}\033[0;37;0m\n--------------------")
 
-                        yield paragraph,reply,infotext,html
-                else:
-                    if params['include_short']:
-                        
-                        paragraph_orig  =  paragraph
-                        if jason_inp and repolacement_out!='':
-                            paragraph_orig  =  repolacement_out
+                    else:
+                        print(f"Skipping") 
 
-                        inout = jsoninputLN + paragraph
-                        jsonfile.append({
-                            "instruction": inout,
-                            "output": paragraph_orig
-                        })
-
-                        plaintextfile = plaintextfile + paragraph + plain_txt_delim
-                        print(f"SHORT -> Copy")
-                
+                    yield input,reply,infotext,html
+            
                 if params['generate']:           
                     time.sleep(0.1)
 
@@ -1067,9 +1057,9 @@ def final_save():
 def preview_prev():
     global current_prev
     
-    if 0 < current_prev < len(paragraphs):
+    if 0 < current_prev < len(paragraphs_input):
         current_prev = current_prev-1
-        item = paragraphs[current_prev]
+        item = paragraphs_input[current_prev]
         return item
     
     return "--BEGIN--"
@@ -1077,9 +1067,9 @@ def preview_prev():
 def preview_next():
     global current_prev
     
-    if 0 <= current_prev < len(paragraphs)-1:
+    if 0 <= current_prev < len(paragraphs_input)-1:
         current_prev = current_prev+1
-        item = paragraphs[current_prev]
+        item = paragraphs_input[current_prev]
         return item
     
     return "--END--"
@@ -1167,7 +1157,7 @@ def ui():
                     with gr.Row():
                         inputfile_text_drop_JSON  = gr.Dropdown(choices=get_available_input_JSON(), label='Input file', elem_classes=['slim-dropdown'], value='None')
                         create_refresh_button(inputfile_text_drop_JSON, lambda: None, lambda: {'choices': get_available_input_JSON()}, 'refresh-button')
-                        gr_JSONType = gr.Dropdown(choices=JSON_TYPE, value=JSON_TYPE[0])
+                        gr_JSONType = gr.Dropdown(choices=JSON_TYPE, value=JSON_TYPE[0], label='JSON Operation')
                         text_btn_load_JSON = gr.Button('Load JSON', variant='primary', elem_classes="small-button")
      
             with gr.Row():
@@ -1210,7 +1200,7 @@ def ui():
                                     with gr.Column():
                                         gr_generate = gr.Checkbox(value=params['generate'],label='Generate Output: Text [in]-> (LLM) -> LLM Text [out]')
                                         gr_generate2 =gr.Checkbox(value=params['double_gen'],label='Double-gen: Text [in]-> (LLM) -> (LLM) -> LLM Text [out]')
-                                        gr_radioReverse = gr.Checkbox(label='REVERSE Training: LLM Text[out] -> instruction, Text[in] -> output',value = params['out_reverse'], interactive=True)     
+                                        gr_radioReverse = gr.Checkbox(label='REVERSE (Text): LLM -> instruction, original -> output',value = params['out_reverse'], interactive=True)     
                                     
                                         gr_rep_EOL = gr.Checkbox(value=params['replace_eol'],label='Replace \\n in Text [in] with space')
 
@@ -1219,22 +1209,21 @@ def ui():
                                     
                                         gr_rep_EOL2 = gr.Checkbox(value=params['replace_eol2'],label='Replace \\n\\n with one \\n in Text [in]')
                                         gr_rmove_EOL = gr.Checkbox(value=params['remove_eol'],label='Internally Remove \\n before it goes to LLM, but keep it in Text [in]')
-                                        gr_max_new_tokens = gr.Slider(minimum=100, maximum=4096, step=1, label='Max new tokens', value=params['max_new_tokens'])
                                         
                                     with gr.Column():
-                                        gr_rep_Include_Long = gr.Checkbox(value=params['include_long'],label='if reply is much longer (3x) than IN: Copy IN -> OUT (otherwise ignore)')
-                                        gr_rep_skip_short = gr.Checkbox(value=params['skip_short'],label='if reply is much shorter (3x) than IN then skip')
-                                        gr_small_lines = gr.Number(value=params['limit_short'],label='SHORT IN cutoff characters')
-                                        gr_rep_Include = gr.Checkbox(value=params['include_short'],label='if IN is SHORT: Copy IN -> OUT (otherwise ignore)')
+                                        gr_rep_skip_Long = gr.Checkbox(value=params['skip_long'],label='Skip LONG reply (3x) than Text[IN]')
+                                        gr_small_lines = gr.Number(value=params['limit_short'],label='Skip SHORT Input if Text[IN] is less than:')
                                         repeat_times = gr.Number(value=params['repeat_times'],label='Repeat each block n times')
                                 
                                 save_btn = gr.Button('Save Current Settings')        
 
                         with gr.Row():
+                            gr_max_new_tokens = gr.Slider(minimum=100, maximum=4096, step=1, label='Max new tokens', value=params['max_new_tokens'])        
+                        with gr.Row():
                             preset_type = gr.Dropdown(label="Model Instruct (OLD))", choices=["Custom", "Vicuna", "Alpaca", "Mythologic", "Guanaco", "OpenAssistant","ChatML", "Gemma", "Llama 2 (Chat)", "Mistral/Mixtral", "Zephyr","WizardLM", "Solar", "OpenChat", "Phi-2 Instruct", "Nous Hermes"], value="Custom")
                             text_USR = gr.Textbox(value=params['pUSER'], lines=1, label='Replace <|user|> with')
                             text_BOT = gr.Textbox(value=params['pBOT'], lines=1, label='Replace <|bot|> with')
-        
+
                                 
             with gr.Row():
                 with gr.Column(): 
@@ -1387,9 +1376,8 @@ def ui():
     gr_max_new_tokens.change(lambda x: params.update({"max_new_tokens": x}), gr_max_new_tokens, None)
 
     gr_small_lines.change(lambda x: params.update({"limit_short": x}), gr_small_lines, None)
-    gr_rep_Include.change(lambda x: params.update({"include_short": x}), gr_rep_Include, None)
-    gr_rep_Include_Long.change(lambda x: params.update({"include_long": x}), gr_rep_Include_Long, None)
-    gr_rep_skip_short.change(lambda x: params.update({"skip_short": x}), gr_rep_skip_short, None)
+    
+    gr_rep_skip_Long.change(lambda x: params.update({"skip_long": x}), gr_rep_skip_Long, None)
     gr_par_split.change(lambda x: params.update({"paragraph_split": x}), gr_par_split, None)
     gr_par_split_chapter.change(lambda x: params.update({"chapter_start": x}), gr_par_split_chapter, None)
 
