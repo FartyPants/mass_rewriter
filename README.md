@@ -1,12 +1,14 @@
 # mass_rewriter
-Extension for WEbUI
+Extension for WebUI 
+
+Version 2.0
 
 This is a comprehensive script for a "Mass Rewriter" extension. Let's break down its functionality item by item.
 
 ---
 
 
-# Mass Rewriter: User Guide
+# Mass Rewriter: User Guide V2
 
 This tool helps you automate the process of modifying text in bulk using an AI model. You can load plain text files or JSON datasets, apply various transformations, and then save the rewritten content.
 
