@@ -6,10 +6,6 @@ This is a comprehensive script for a "Mass Rewriter" extension. Let's break down
 ---
 
 
-Of course. Here is the complete, final user guide, formatted in Markdown for direct use on GitHub. It incorporates all the corrections, clarifications, and new sections we've developed.
-
----
-
 # Mass Rewriter: User Guide
 
 This tool helps you automate the process of modifying text in bulk using an AI model. You can load plain text files or JSON datasets, apply various transformations, and then save the rewritten content.
