@@ -1,6 +1,9 @@
 # mass_rewriter
 Extension for WebUI 
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q5MOB4M)
+
+
 Version 2.0
 
 This is a comprehensive script for a "Mass Rewriter" extension. Let's break down its functionality item by item.
