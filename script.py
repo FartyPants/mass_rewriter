@@ -340,7 +340,7 @@ def load_json_data(file, gr_JSONType):
     path = get_file_pathJSON('inputs',file)
     try:
         
-        with open(path, 'r') as json_file:
+        with open(path, 'r', encoding='utf-8') as json_file:
             
             json_in_data = json.load(json_file)
             if json_in_data:
@@ -1213,7 +1213,7 @@ def ui():
                                     with gr.Column():
                                         gr_rep_skip_Long = gr.Checkbox(value=params['skip_long'],label='Skip LONG reply (3x) than Text[IN]')
                                         gr_small_lines = gr.Number(value=params['limit_short'],label='Skip SHORT Input if Text[IN] is less than:')
-                                        repeat_times = gr.Number(value=params['repeat_times'],label='Repeat each block n times')
+                                        repeat_times = gr.Number(value=params['repeat_times'],label='Repeat the process n times')
                                 
                                 save_btn = gr.Button('Save Current Settings')        
 
