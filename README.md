@@ -9,10 +9,7 @@ This tool helps you automate the process of modifying text in bulk using an AI m
 
 <img width="200" height="320" alt="The Cranky Man's Guide to LoRA & QLoRA" src="https://github.com/user-attachments/assets/afdbaae1-54a6-421f-a52c-ce6ea4477514" />
 
-*   [Amazon (Kindle & Paperback)](https://www.amazon.com/dp/B0FLBTR2FS)
-*   [Apple Books](https://books.apple.com/us/book/the-cranky-mans-guide-to-lora-and-qlora/id6749593842)
-*   [Kobo](https://www.kobo.com/ca/en/ebook/the-cranky-man-s-guide-to-lora-and-qlora)
-*   [Barnes & Noble](https://www.barnesandnoble.com/w/the-cranky-mans-guide-to-lora-and-qlora-f-p-ham/1148001179)
+Find it on [Amazon](https://www.amazon.com/dp/B0FLBTR2FS), [Apple Books](https://books.apple.com/us/book/the-cranky-mans-guide-to-lora-and-qlora/id6749593842), [Kobo](https://www.kobo.com/ca/en/ebook/the-cranky-man-s-guide-to-lora-and-qlora), [Barnes & Noble](https://www.barnesandnoble.com/w/the-cranky-mans-guide-to-lora-and-qlora-f-p-ham/1148001179)
 
 And, as a happy little bonus, it is also the best way to support my work on all these wonderful tools, so thanks for checking it out.
 
