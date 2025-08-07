@@ -9,7 +9,7 @@ This tool helps you automate the process of modifying text in bulk using an AI m
 
 By some miracle of fate, and the pure, unadulterated terror of having to actually finish the damned thing, my last two years of feverish, frustrating, and occasionally glorious LLM experiments have been distilled into a real, live, actual book! And not some little pamphlet, but a whopping 600 freaking pages long!
 
-And not just any book, but "The Cranky Man's Guide to LoRA & QLoRA"!
+And not just any book either, but "The Cranky Man's Guide to LoRA & QLoRA"!
 
 <img width="200" height="320" alt="The Cranky Man's Guide to LoRA & QLoRA" src="https://github.com/user-attachments/assets/afdbaae1-54a6-421f-a52c-ce6ea4477514" />
 
