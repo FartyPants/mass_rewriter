@@ -11,6 +11,9 @@ This tool helps you automate the process of modifying text in bulk using an AI m
 
 Find it on [Amazon](https://www.amazon.com/dp/B0FLBTR2FS), [Apple Books](https://books.apple.com/us/book/the-cranky-mans-guide-to-lora-and-qlora/id6749593842), [Kobo](https://www.kobo.com/ca/en/ebook/the-cranky-man-s-guide-to-lora-and-qlora), [Barnes & Noble](https://www.barnesandnoble.com/w/the-cranky-mans-guide-to-lora-and-qlora-f-p-ham/1148001179)
 
+By some miracle of fate, and the pure, unadulterated terror of having to actually finish the damned thing, my last two years of feverish, frustrating, and occasionally glorious LLM experiments have been distilled into a real, live, actual book! And not some little pamphlet, but a whopping 600 freaking pages long!
+
+
 Also :
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q5MOB4M)
