@@ -25,6 +25,8 @@ If this whole thing suddenly sounds like your kind of madness, and you want to k
 And, as a happy little bonus, it is also the best way to support my work on all these wonderful tools, so thanks for checking it out.
 
 
+You can also :
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q5MOB4M)
 
 
