@@ -5,16 +5,13 @@ Extension for WebUI
 
 This tool helps you automate the process of modifying text in bulk using an AI model. You can load plain text files or JSON datasets, apply various transformations, and then save the rewritten content.
 
-## There is much more detailed explanation in my "The Cranky Man's Guide to LoRA & QLoRA" 
+## There is much more detailed ste[-by-ste[ explanation in my book "The Cranky Man's Guide to LoRA & QLoRA" 
 
 <img width="200" height="320" alt="The Cranky Man's Guide to LoRA & QLoRA" src="https://github.com/user-attachments/assets/afdbaae1-54a6-421f-a52c-ce6ea4477514" />
 
 Find it on [Amazon](https://www.amazon.com/dp/B0FLBTR2FS), [Apple Books](https://books.apple.com/us/book/the-cranky-mans-guide-to-lora-and-qlora/id6749593842), [Kobo](https://www.kobo.com/ca/en/ebook/the-cranky-man-s-guide-to-lora-and-qlora), [Barnes & Noble](https://www.barnesandnoble.com/w/the-cranky-mans-guide-to-lora-and-qlora-f-p-ham/1148001179)
 
-And, as a happy little bonus, it is also the best way to support my work on all these wonderful tools, so thanks for checking it out.
-
-
-You can also :
+Also :
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q5MOB4M)
 
