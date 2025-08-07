@@ -1,7 +1,7 @@
 # mass_rewriter
 Extension for WebUI 
 
-**So, I Wrote a 600-Page Book About My LLM Madness**
+**Well, it happened. I Wrote a 600-Page Book About My LLM Madness**
 
 By some miracle of fate, and the pure, unadulterated terror of having to actually finish the damned thing, my last two years of feverish, frustrating, and occasionally glorious LLM experiments have been distilled into a real, live, actual book! And not some little pamphlet, but a whopping 600 freaking pages long!
 
