@@ -36,9 +36,11 @@ You can also :
 
 Version 2.0
 
-This is a comprehensive script for a "Mass Rewriter" extension. Let's break down its functionality item by item.
+
 
 ---
+
+## There is much more detailed explanation in "The Cranky Man's Guide to LoRA & QLoRA" 
 
 
 ## 1. Getting Started: Loading Your Data
