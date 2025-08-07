@@ -1,6 +1,10 @@
 # mass_rewriter
 Extension for WebUI 
 
+# Mass Rewriter: User Guide V2
+
+This tool helps you automate the process of modifying text in bulk using an AI model. You can load plain text files or JSON datasets, apply various transformations, and then save the rewritten content.
+
 **Well, it happened. I Wrote a 600-Page Book About My LLM Madness**
 
 By some miracle of fate, and the pure, unadulterated terror of having to actually finish the damned thing, my last two years of feverish, frustrating, and occasionally glorious LLM experiments have been distilled into a real, live, actual book! And not some little pamphlet, but a whopping 600 freaking pages long!
@@ -36,10 +40,6 @@ This is a comprehensive script for a "Mass Rewriter" extension. Let's break down
 
 ---
 
-
-# Mass Rewriter: User Guide V2
-
-This tool helps you automate the process of modifying text in bulk using an AI model. You can load plain text files or JSON datasets, apply various transformations, and then save the rewritten content.
 
 ## 1. Getting Started: Loading Your Data
 
